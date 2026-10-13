@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  
+  <title>DermaNet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Estilos generales y fuentes -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+
+    
+</head>
+<body>
+
+<!-- PANTALLA 1: LOGIN -->
+<div id="credenciales" class="vista">
+  <header>
+    <img src="logo.png" alt="Logo DermaNet" class="logoInicio">
+  </header>
+  <form id="loginForm">
+    <p id="errorMensaje" class="error-texto" style="display: none;">User or password incorrect</p>
+    <input type="text" id="dni" name="dni" placeholder="User" required>
+    <input type="password" id="password" name="password" placeholder="Password" required>
+    <button type="button" onclick="login()">Login</button>
+  </form>
+  <p class="texto-pequeño">Not registred yet? <a href="#" onclick="cambiarVista('registro')">Register here</a></p>
+</div>
+
+
+<!-- PANTALLA 2: REGISTRO -->
+<div id="registro" class="vista">
+  <header class="contenedor-header">
+    <img src="logo.png" alt="Logo DermaNet" class="logo" onclick="cambiarVista('credenciales')">
+    <h2 class="titulo">User Register</h2>
+  </header>
+  
+  <form id="registroForm">
+    <p id="errorRegistro" class="error-texto" style="display: none;">The user is already used</p>
+    <input type="text" id="nombreRegistro" placeholder="Name" required>
+    <input type="text" id="nombreRegistro2" placeholder="Name2 (Optional)">
+    <input type="text" id="apellidosRegistro" placeholder="Surnames" required>
+    <input type="text" id="dniRegistro" placeholder="User" required>
+    <input type="password" id="passwordRegistro" placeholder="Password" required>
+    <div class="select-container" onclick="toggleSelect(this)">
+      <div class="custom-select">Select your specialty</div>
+      <div class="select-options">
+        <div onclick="setOption(this)">Primary Care</div>
+        <div onclick="setOption(this)">Dermatology</div>
+      </div>
+    </div>
+    <button type="button" onclick="registrarUsuario()">Register</button>
+  </form>
+</div>
+
+
+<!-- PANTALLA 3: INICIO -->
+<div id="inicio" class="vista">
+  <header class="header-sip">
+    <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <div class="user-info">
+      <span id="userNombre"></span> | 
+      <span id="userEspecialidad"></span> | 
+      <span id="userDNI"></span>
+    </div>
+  </header>
+  <main>
+    <div class="icon-container">
+      <button class="icon-btn" onclick="cambiarVista('pantallaSIP')">
+        <i class="fas fa-notes-medical"></i>
+        <p>New Diagnosis</p>
+      </button>
+      
+      <button class="icon-btn" onclick="vistaSeguimiento()">
+        <i class="fas fa-clipboard-check"></i>
+        <p>Tracking</p>
+      </button>
+      <button class="icon-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <p>Log Out</p>
+      </button>
+    </div>
+  </main>
+</div>
+
+
+<!-- PANTALLA 4: ¿SIP? -->
+<div id="pantallaSIP" class="vista">
+    <header class="header-sip">
+      <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+      <div class="user-info">
+        <span id="userNombre"></span> | 
+        <span id="userEspecialidad"></span> | 
+        <span id="userDNI"></span>
+      </div>
+    </header>
+    <main class="pregunta-container">
+      <h2 class="pregunta-texto">¿SIP?</h2>
+      <div class="botones-sip">
+        <button class="btn-sip btn-si" onclick="faltaImplementacion()">Yes</button>
+        <button class="btn-sip btn-no" onclick="cambiarVista('formulario')">No</button>
+      </div>
+    </main>
+    <button class="btn-volver1" onclick="cambiarVista('inicio')">Go back</button>
+</div>
+
+
+<!-- PANTALLA 5: FORMULARIO -->
+<div id="formulario" class="vista">
+    <header>
+      <header class="header-sip">
+        <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+        <div class="user-info">
+          <span id="userNombre"></span> | 
+          <span id="userEspecialidad"></span> | 
+          <span id="userDNI"></span>
+        </div>
+      </header>
+      <h2>New Diagnosis</h2>
+    </header>
+    <form>
+      <input type="text" id="nombre" name="nombre" placeholder="Name" required>
+      <input type="text" id="apellidos" name="apellidos" placeholder="Surnames" required>
+      <input type="number" id="edad" name="edad" placeholder="Age" required>
+    
+      <div class="select-container sexo-select" onclick="toggleSelect(this)">
+        <div class="custom-select">Select sex</div>
+        <div class="select-options">
+            <div onclick="setOption(this)">Male</div>
+            <div onclick="setOption(this)">Female</div>
+        </div>
+    </div>
+    
+    
+    
+    
+
+      <input type="text" id="sip" name="sip" placeholder="SIP" required>
+      
+      <button type="button" onclick="diagnostico1()">Following</button>
+    </form>
+    <button class="btn-volver1" onclick="cambiarVista('inicio')">Go back</button>
+
+</div>
+
+
+<!-- PANTALLA 6: SITIO ANATÓMICO -->
+<div id="sitioAnatomico" class="vista">
+  <header class="header-sip">
+      <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+      <div class="user-info">
+          <span id="userNombre"></span> | 
+          <span id="userEspecialidad"></span> | 
+          <span id="userDNI"></span>
+      </div>
+  </header>
+
+  <h2 class="titulo-anatomico">Indicates the anatomical site of the injury</h2>
+
+  <div id="canvas3D"></div>
+
+  <div id="sitioSeleccionado">
+      <p>Site selected: <span id="textoSitio">None</span></p>
+  </div>
+
+  <button type="button" class="btn-siguiente" onclick="cambiarVista('seleccionImagen')">Following</button>
+  <button class="btn-volver1" onclick="cambiarVista('formulario')">Go Back</button>
+
+</div>
+
+
+<!-- PANTALLA 7: SELECCIÓN DE IMAGEN -->
+<div id="seleccionImagen" class="vista">
+  <header class="header-sip">
+      <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+      <div class="user-info">
+          <span id="userNombre"></span> | 
+          <span id="userEspecialidad"></span> | 
+          <span id="userDNI"></span>
+      </div>
+  </header>
+  <main class="contenedor-seleccion">
+      <h2 class="pregunta-texto">Select an option</h2>
+      <div class="botones-seleccion">
+          <button class="btn-seleccion btn-camara" onclick="tomarFoto()">
+              <i class="fas fa-camera"></i> Take Image
+          </button>
+          <button class="btn-seleccion btn-archivo" onclick="document.getElementById('inputImagen').click()">
+              <i class="fas fa-upload"></i> Upload Image
+          </button>
+          <input type="file" id="inputImagen" style="display: none;" onchange="cargarImagen(event)">
+      </div>
+
+      <!-- Vista previa de la imagen -->
+      <div id="vistaPrevia" class="vista-previa">
+          <p class="texto-secundario">None image selected</p>
+      </div>
+
+      <!-- Botón para continuar -->
+      <button class="btn-iniciar" onclick="generarCirculos()" disabled id="btnIniciarDiagnostico">Start Diagnostics</button>
+  </main>
+  <button class="btn-volver1" onclick="cambiarVista('sitioAnatomico')">Go Back</button>
+
+</div>
+
+
+<!-- PANTALLA 8: RESULTADOS -->
+<div id="resultados" class="vista">
+  <header class="header-sip">
+    <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <div class="user-info">
+      <span id="userNombre"></span> | 
+      <span id="userEspecialidad"></span> | 
+      <span id="userDNI"></span>
+    </div>
+  </header>
+  
+  <h2 class="titulo2">Results</h2>
+
+  <div class="circle-container" id="circle-container">
+    <!-- Los círculos y textos se generarán aquí dinámicamente -->
+  </div>
+
+  <button class="btn-siguiente" onclick="cambiarVista('inicio')">Go back</button>
+</div>
+
+
+<div id="sAnatomico" class="vista">
+  <header class="header-sip">
+    <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <div class="user-info">
+      <span id="userNombre"></span> | 
+      <span id="userEspecialidad"></span> | 
+      <span id="userDNI"></span>
+    </div>
+  </header>
+  <div class="sitio">
+    <select id="parteCuerpo">
+      <option value="0">Anterior Torso</option>
+      <option value="1">Upper Extremity</option>
+      <option value="2">Posterior Torso</option>
+      <option value="3">Lower Extremity</option>
+      <option value="4">Lateral Torso</option>
+      <option value="5">Head/Neck</option>
+      <option value="6">Palms/Soles</option>
+      <option value="7">Oral/Genital</option>
+  </select>    <button class="btn-enviar" onclick="enviarDiagnostico()">Enviar</button>
+  </div>
+
+  <button class="btn-volver1" onclick="cambiarVista('inicio')">Volver</button>
+</div>
+
+
+<!-- PANTALLA DE CARGA -->
+<div id="pantallaCarga" class="vista">
+  <div class="contenedor-carga">
+      <div class="spinner"></div>
+      <p class="texto-carga">Analizando imagen y generando diagnóstico...</p>
+  </div>
+</div>
+
+
+<!-- PANTALLA 9: SEGUIMIENTO DE PACIENTES -->
+<div id="seguimiento" class="vista">
+  <header class="header-sip">
+    <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <div class="user-info">
+      <span id="userNombre"></span> | 
+      <span id="userEspecialidad"></span> | 
+      <span id="userDNI"></span>
+    </div>
+  </header>
+  <!-- Modal de Confirmación -->
+  <div id="modalEliminar" class="modal">
+    <div class="modal-content">
+        <p id="modalTexto"></p>
+        <div class="modal-botones">
+            <button id="btnConfirmarEliminar" class="btn-confirmar">Delete</button>
+            <button onclick="cerrarModal()" class="btn-cancelar">Cancel</button>
+        </div>
+    </div>
+  </div>
+  <h2 class="titulo2">Patient Monitoring</h2>
+
+  <!-- Buscador de pacientes -->
+  <input type="text" id="buscadorPacientes" placeholder="Search for Name or SIP..." onkeyup="filtrarPacientes()">
+  
+  <div id="listaPacientes" class="lista-pacientes"></div>
+
+  <button class="btn-volver" onclick="cambiarVista('inicio')">Go back</button>
+
+</div>
+
+
+<!-- PANTALLA 10: DETALLES DEL PACIENTE Y SUS LESIONES -->
+<div id="detallePaciente" class="vista">
+  <header class="header-sip">
+    <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('seguimiento')">
+    <div class="user-info">
+      <span id="userNombre"></span> | 
+      <span id="userEspecialidad"></span> | 
+      <span id="userDNI"></span>
+    </div>
+  </header>
+  <div class="paciente-info-container">
+    <h3>Patient's Data</h3>
+    <div class="paciente-info-row">
+      <div class="info-block">
+        <strong>Name:</strong>
+        <span id="detalleNombre"></span>
+      </div>
+      <div class="info-block">
+        <strong>Age:</strong>
+        <span id="detalleEdad"></span>
+      </div>
+      <div class="info-block">
+        <strong>SIP:</strong>
+        <span id="detalleSIP"></span>
+      </div>
+      <div class="info-block">
+        <strong>Sex:</strong>
+        <span id="detalleSexo"></span>
+      </div>
+    </div>
+  </div>
+  
+  
+  <h3 class="titulo3">Injuries</h3>
+<!-- Contenedor con scroll -->
+<div id="listaLesiones">
+  <!-- Estos dos divs se llenarán dinámicamente en JavaScript -->
+  <div id="tituloActivos"></div>
+  <div id="containerActivos"></div>
+  <div id="tituloCerrados"></div>
+  <div id="containerCerrados"></div>
+</div>
+
+<!-- Modal de Seguimiento del Paciente -->
+<div id="modalSeguimiento" class="modal-seguimiento">
+  <div class="modal-seguimiento-content">
+      <h2 id="seguimientoNombre" class = "informesH2"></h2>
+      <h3 class = "informesH3">Medical Reports</h3>
+
+      <!-- 🔥 Sección de informes con scroll -->
+      <div id="contenedorInformes" class="contenedor-informes">
+          <ul id="listaInformes"></ul>
+      </div>
+
+      <!-- 🔥 Botones siempre visibles -->
+      <div class="botones-seguimiento">
+          <button onclick="cerrarModalSeguimiento()" class="btn-cerrar">Close</button>          
+          <button onclick="cambiarVista('sitioAnatomico')" class="btn-diagnostico">New Diagnoses</button>          
+          <button onclick="abrirEvolucionLesion()" class="btn-evolucion">Evolution</button>
+        </div>
+  </div>
+  
+</div>
+<button class="btn-volver2" onclick="cambiarVista('seguimiento')">Go back</button>
+<div id="modalCerrarCaso" class="modal">
+  <div class="modal-content">
+    <p id="modalTextoCerrarCaso"></p>
+    <div class="modal-botones">
+      <button id="btnConfirmarCerrarCaso" class="btn-confirmar">Cerrar Caso</button>
+      <button onclick="cerrarModalCerrarCaso()" class="btn-cancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- PANTALLA 11: INFORME -->
+<div id="pantallaInforme" class="vista" style="display: none;">
+  <header class="header-sip">
+      <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('detallePaciente')">
+      <div class="user-info">
+          <span id="userNombre"></span> | 
+          <span id="userEspecialidad"></span> | 
+          <span id="userDNI"></span>
+      </div>
+  </header>
+
+  <main class="contenedor-informe">
+      <h2 class="titulo2">Medical Report</h2>
+      
+      <div class="informe-contenido">
+          <div class="imagen-container">
+              <img id="imagenInforme" class="imagen-informe" src="" alt="Imagen del Informe">
+          </div>
+          <div class="datos-informe">
+              <p><strong>Patient:</strong> <span id="informePaciente"></span></p>
+              <p><strong>Diagnosis:</strong> <span id="informeDiagnostico"></span></p>
+              <p><strong>AI Diagnosis:</strong> <span id="informeDiagnosticoIA"></span></p>
+              <p><strong>Date:</strong> <span id="informeFecha"></span></p>
+          </div>
+      </div>
+        <!-- Botón de Diagnosticar (solo visible si el informe no tiene diagnóstico) -->
+        <button id="btnDiagnosticar" class="btn-diagnosticar" onclick="abrirModalDiagnostico()" style="display: none;">Diagnose</button>
+
+        <!-- Modal de Diagnóstico con select personalizado -->
+        <div id="modalDiagnostico" class="modal">
+            <div class="modal-content">
+                <h2>Diagnosis</h2>
+
+                <div class="select-container" onclick="toggleSelect(this)">
+                  <div class="custom-select">Possible Diagnoses</div>
+                  <div class="select-options">
+                      <div onclick="setOption(this)">Nevus</div>
+                      <div onclick="setOption(this)">Melanoma</div>
+                      <div onclick="setOption(this)">Basal Cell Carcinoma</div>
+                      <div onclick="setOption(this)">Squamous Cell Carcinoma</div>
+                      <div onclick="setOption(this)">Actinic Keratosis</div>
+                  </div>
+              </div>
+              
+
+                <div class="modal-botones">
+                    <button onclick="guardarDiagnostico()">Save</button>
+                    <button onclick="cerrarModalDiagnostico()">Close</button>
+                </div>
+            </div>
+        </div>
+
+
+      <div class="notas-informe">
+        <h3>Report Notes</h3>
+        <ul id="listaNotas" class="lista-notas"></ul>
+    
+        <textarea id="notaInforme" placeholder="Add note..." rows="4"></textarea>
+        <button class="btn-guardar-nota" onclick="guardarNotaInforme()">Save Note</button>
+
+    </div>
+    
+    <button class="btn-volver" onclick="cambiarVista('detallePaciente')">Go Back</button>
+
+      
+  </main>
+</div>
+
+
+<!-- PANTALLA 12: EVOLUCIÓN DE LESIÓN -->
+<div id="evolucionLesion" class="vista">
+  <header class="header-sip">
+    <img src="logo.png" alt="Logo DermaNet" class="logo-pequeno" onclick="cambiarVista('detallePaciente')">
+    <div class="user-info">
+      <span id="userNombre"></span> | 
+      <span id="userEspecialidad"></span> | 
+      <span id="userDNI"></span>
+    </div>
+  </header>
+  <h2 class="titulo2">Evolución de la Lesión</h2>
+  
+  <div id="contenedorImagenes" class="contenedor-imagenes">
+    <!-- Las imágenes se cargarán aquí dinámicamente -->
+  </div>
+
+  <button class="btn-volver" onclick="cambiarVista('detallePaciente')">Volver</button>
+</div>
+
+
+
+  <script src="script.js"></script>
+  <script src="rest.js"></script>
+
+</body>
+</html>
