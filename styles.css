@@ -1702,3 +1702,114 @@ textarea {
     text-align: center;
   }
   
+/* Pantalla de selección de modo (real / demo) */
+.contenedor-modo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 40px);
+    text-align: center;
+    gap: 25px;
+}
+
+.logo-modo {
+    width: 200px;
+    height: auto;
+}
+
+.titulo-modo {
+    font-size: 22px;
+    font-weight: bold;
+    color: #0f5f96;
+}
+
+.botones-modo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 320px;
+}
+
+.btn-modo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 0;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.btn-modo i {
+    font-size: 30px;
+}
+
+.btn-modo-titulo {
+    font-size: 18px;
+}
+
+.btn-modo-desc {
+    font-size: 14px;
+    font-weight: normal;
+    opacity: 0.9;
+}
+
+.btn-modo-real {
+    background-color: #137DC5;
+}
+
+.btn-modo-real:hover {
+    background-color: #0f5f96;
+}
+
+.btn-modo-demo {
+    background-color: #50aeee;
+}
+
+.btn-modo-demo:hover {
+    background-color: #2199ea;
+}
+
+/* Indicaciones del modo demo */
+.texto-demo {
+    display: none;
+    font-size: 14px;
+    color: #137DC5;
+    text-align: center;
+}
+
+body.modo-demo .texto-demo {
+    display: block;
+}
+
+.texto-cambiar-modo {
+    margin-top: 15px;
+}
+
+.badge-demo {
+    display: none;
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 12px;
+    border-radius: 12px;
+    background-color: #ff9800;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+body.modo-demo .badge-demo {
+    display: block;
+}
+
+body.modo-demo:has(#modo.visible) .badge-demo {
+    display: none;
+}

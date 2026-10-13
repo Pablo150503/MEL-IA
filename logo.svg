@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 710 120">
+  <defs>
+    <linearGradient id="gradRing" gradientUnits="userSpaceOnUse" x1="15" y1="10" x2="115" y2="110">
+      <stop offset="0%" stop-color="#0f5f96"/>
+      <stop offset="100%" stop-color="#50aeee"/>
+    </linearGradient>
+    <linearGradient id="gradMEL" gradientUnits="userSpaceOnUse" x1="185" y1="0" x2="489" y2="0">
+      <stop offset="0%" stop-color="#0f5f96"/>
+      <stop offset="100%" stop-color="#137DC5"/>
+    </linearGradient>
+    <linearGradient id="gradIA" gradientUnits="userSpaceOnUse" x1="524" y1="0" x2="682" y2="0">
+      <stop offset="0%" stop-color="#137DC5"/>
+      <stop offset="100%" stop-color="#50aeee"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Symbol: dermatoscope lens over a stylized lesion analyzed by AI nodes -->
+  <g>
+    <circle cx="65" cy="60" r="50" fill="none" stroke="url(#gradRing)" stroke-width="8"/>
+    <path d="M 65,36 C 76,37 83,45 84,56 C 85,66 80,75 70,80 C 60,85 48,82 43,72 C 38,62 40,50 48,42 C 54,37 59,35 65,36 Z" fill="#00406a"/>
+    <g stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+      <line x1="65" y1="58" x2="50" y2="48"/>
+      <line x1="65" y1="58" x2="78" y2="46"/>
+      <line x1="65" y1="58" x2="82" y2="68"/>
+      <line x1="65" y1="58" x2="54" y2="80"/>
+    </g>
+    <g fill="#50aeee" stroke="#0f5f96" stroke-width="1.2">
+      <circle cx="65" cy="58" r="3.2"/>
+      <circle cx="50" cy="48" r="4"/>
+      <circle cx="78" cy="46" r="3.6"/>
+      <circle cx="82" cy="68" r="4"/>
+      <circle cx="54" cy="80" r="3.6"/>
+    </g>
+  </g>
+
+  <!-- Wordmark: MEL-IA (hand-drawn monoline geometric letterforms, no font dependency) -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="16">
+    <!-- M -->
+    <path d="M 185,105 L 185,15 L 227,72 L 269,15 L 269,105" stroke="url(#gradMEL)"/>
+    <!-- E -->
+    <path d="M 363,15 L 303,15 L 303,105 L 363,105" stroke="url(#gradMEL)"/>
+    <path d="M 303,60 L 345,60" stroke="url(#gradMEL)" stroke-width="14"/>
+    <!-- L -->
+    <path d="M 397,15 L 397,105 L 449,105" stroke="url(#gradMEL)"/>
+    <!-- separator node (echoes the AI motif between MEL and IA) -->
+    <circle cx="489" cy="60" r="10" fill="#2199ea" stroke="none"/>
+    <!-- I (with serifs) -->
+    <path d="M 524,15 L 564,15" stroke="url(#gradIA)"/>
+    <path d="M 544,15 L 544,105" stroke="url(#gradIA)"/>
+    <path d="M 524,105 L 564,105" stroke="url(#gradIA)"/>
+    <!-- A -->
+    <path d="M 598,105 L 640,15 L 682,105" stroke="url(#gradIA)"/>
+    <path d="M 613,65 L 667,65" stroke="url(#gradIA)" stroke-width="14"/>
+  </g>
+</svg>

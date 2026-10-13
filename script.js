@@ -1,13 +1,25 @@
 let vistaActual = null;
 
-cambiarVista("credenciales");
+cambiarVista("modo");
 
 
+var modoDemo = false; // true: la app funciona sin servidor con los datos simulados de demo.js
 var medicoActual = null;
 var informeActual = null;
 var pacienteActual = null;
-var nuevoPaciente = null; 
+var nuevoPaciente = null;
 var nuevoDiagnostico = null;
+
+/**
+ * Pantalla de selección de modo: "real" (conecta con el servidor) o "demo" (sin conexión).
+ */
+function elegirModo(modo) {
+  modoDemo = (modo === "demo");
+  medicoActual = null;
+  document.body.classList.toggle("modo-demo", modoDemo);
+  document.getElementById("errorMensaje").style.display = "none";
+  cambiarVista("credenciales");
+}
 
 function login() {
   var usuario = document.getElementById("dni").value;
@@ -924,26 +936,15 @@ function cambiarVista(id) {
   }
 }
   
-  /**
-   * Simula la toma de una foto (puede integrarse con la API de cámara en el futuro)
-   */
-  function tomarFoto() {
-    alert("Abrir cámara (Función a implementar)");
-    agregarImagen("camara.jpg", "Foto tomada");
-  }
-
-
-
 /**
- * Simula la toma de una foto (puede integrarse con la API de cámara en el futuro)
+ * Abre la cámara del móvil (input con capture). En ordenador abre el selector de archivos.
  */
 function tomarFoto() {
-  alert("Abrir cámara (Función a implementar)");
-  agregarImagen("camara.jpg", "Foto tomada");
+  document.getElementById("inputCamara").click();
 }
 
 /**
-* Maneja la carga de imágenes y las añade a la vista previa
+* Maneja la carga de imágenes (cámara o fototeca) y las añade a la vista previa
 */
 function cargarImagen(event) {
   const archivo = event.target.files[0];
@@ -951,6 +952,7 @@ function cargarImagen(event) {
       const urlImagen = URL.createObjectURL(archivo);
       agregarImagen(urlImagen, archivo.name);
   }
+  event.target.value = ""; // Permite volver a elegir la misma foto
 }
 
 /**
@@ -1128,12 +1130,33 @@ function detectarClicEnModelo(event, camera, scene) {
 }
   
 
+  /**
+   * Botón "Start Diagnostics". En modo demo se guarda el informe en los datos simulados
+   * y se muestra la pantalla de carga antes de los resultados.
+   */
+  function iniciarDiagnostico() {
+    if (!modoDemo) {
+      generarCirculos();
+      return;
+    }
+    const imagen = document.querySelector("#vistaPrevia img");
+    demoGuardarInforme(imagen ? imagen.src : "");
+    cambiarVista("pantallaCarga");
+    setTimeout(generarCirculos, 2500);
+  }
+
   function generarCirculos() {
     // Mostrar la vista "resultados"
     cambiarVista("resultados");
-    
-    // Tus categorías de diagnóstico
-    const categories = [
+
+    // Tus categorías de diagnóstico (en modo demo el resultado siempre es Nevus)
+    const categories = modoDemo ? [
+      { name: "Nevus", percentage: 92, color: "#137DC5" },
+      { name: "Melanoma", percentage: 4, color: "#2199ea" },
+      { name: "Basal Cell Carcinoma", percentage: 2, color: "#0f5f96" },
+      { name: "Actinic Keratosis", percentage: 1, color: "#50aeee" },
+      { name: "Squamous Cell Carcinoma", percentage: 1, color: "#e6e6e6" }
+    ] : [
       { name: "Nevus Melanocítico", percentage: 75, color: "#137DC5" },
       { name: "Melanoma", percentage: 15, color: "#2199ea" },
       { name: "Carcinoma de Cél. Basales", percentage: 5, color: "#0f5f96" },
