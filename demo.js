@@ -12,48 +12,33 @@ Los datos se pierden al recargar la página.
 (function () {
 	const restReal = window.rest;
 
-	// Imagen de ejemplo de un nevus (SVG generado, sin conexión). Sin comillas simples para
-	// que se pueda incrustar en los onclick='...' que genera script.js
-	function imagenNevus(radioX, radioY, giro) {
-		const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-			<defs>
-				<radialGradient id="piel" cx="50%" cy="45%" r="75%">
-					<stop offset="0%" stop-color="#f3cfb3"/><stop offset="100%" stop-color="#d9a98a"/>
-				</radialGradient>
-				<radialGradient id="nevus" cx="45%" cy="45%" r="60%">
-					<stop offset="0%" stop-color="#3b2416"/><stop offset="60%" stop-color="#5c3a24"/><stop offset="100%" stop-color="#8a5a3c"/>
-				</radialGradient>
-				<filter id="borde"><feGaussianBlur stdDeviation="4"/></filter>
-			</defs>
-			<rect width="400" height="400" fill="url(#piel)"/>
-			<ellipse cx="200" cy="200" rx="${radioX}" ry="${radioY}" transform="rotate(${giro} 200 200)" fill="url(#nevus)" filter="url(#borde)"/>
-		</svg>`;
-		return "data:image/svg+xml," + encodeURIComponent(svg);
-	}
-
 	function haceDias(dias) {
 		return new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
 	}
 
-	// "Base de datos" en memoria con las mismas columnas que devuelve servidor.js
+	// "Base de datos" en memoria con las mismas columnas que devuelve servidor.js.
+	// Las imágenes son nevus reales del ISIC Archive (ver img/casos/CREDITOS.txt)
 	const db = {
 		medicos: [
-			{ id: 1, Nombre: "Demo", Nombre2: "", Apellidos: "Doctor", DNI: "demo", Password: "demo", Especialidad: "Dermatología" }
+			{ id: 1, Nombre: "Javier", Nombre2: "", Apellidos: "Ruiz Molina", DNI: "", Password: "", Especialidad: "Dermatología" }
 		],
 		pacientes: [
 			{ Id: 1, Nombre: "Laura", Apellidos: "García López", Edad: 34, Sexo: "Femenino", SIP: "10293847", idMedico: 1 },
 			{ Id: 2, Nombre: "Carlos", Apellidos: "Martínez Ruiz", Edad: 52, Sexo: "Masculino", SIP: "20394857", idMedico: 1 },
-			{ Id: 3, Nombre: "Ana", Apellidos: "Pérez Soler", Edad: 41, Sexo: "Femenino", SIP: "30495867", idMedico: 1 }
+			{ Id: 3, Nombre: "Ana", Apellidos: "Pérez Soler", Edad: 41, Sexo: "Femenino", SIP: "30495867", idMedico: 1 },
+			{ Id: 4, Nombre: "Miguel", Apellidos: "Torres Vidal", Edad: 27, Sexo: "Masculino", SIP: "40586972", idMedico: 1 }
 		],
 		informes: [
-			{ id: 1, PacientesId: 1, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(90), Imagen: imagenNevus(52, 44, 10), abierto: "Si" },
-			{ id: 2, PacientesId: 1, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(7), Imagen: imagenNevus(55, 46, 12), abierto: "Si" },
-			{ id: 3, PacientesId: 1, LesionId: 2, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(200), Imagen: imagenNevus(38, 36, 0), abierto: "No" },
-			{ id: 4, PacientesId: 2, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(3), Imagen: imagenNevus(60, 40, -20), abierto: "Si" },
-			{ id: 5, PacientesId: 3, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(30), Imagen: imagenNevus(45, 45, 0), abierto: "Si" }
+			{ id: 1, PacientesId: 1, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(90), Imagen: "img/casos/caso-1a.jpg", abierto: "Si" },
+			{ id: 2, PacientesId: 1, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(7), Imagen: "img/casos/caso-1b.jpg", abierto: "Si" },
+			{ id: 3, PacientesId: 1, LesionId: 2, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(200), Imagen: "img/casos/caso-2.jpg", abierto: "No" },
+			{ id: 4, PacientesId: 2, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(3), Imagen: "img/casos/caso-3.jpg", abierto: "Si" },
+			{ id: 5, PacientesId: 3, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(30), Imagen: "img/casos/caso-4.jpg", abierto: "Si" },
+			{ id: 6, PacientesId: 4, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(12), Imagen: "img/casos/caso-5.jpg", abierto: "Si" }
 		],
 		notas: [
-			{ id: 1, InformeId: 1, MedicoNota: 1, Nota: "Regular borders and homogeneous color. Follow-up in 3 months.", FechaNota: haceDias(90) }
+			{ id: 1, InformeId: 1, MedicoNota: 1, Nota: "Regular borders and homogeneous color. Follow-up in 3 months.", FechaNota: haceDias(90) },
+			{ id: 2, InformeId: 3, MedicoNota: 1, Nota: "Stable lesion after 6 months. Case closed.", FechaNota: haceDias(15) }
 		]
 	};
 
@@ -68,8 +53,17 @@ Los datos se pierden al recargar la página.
 	// Cada ruta: [método, expresión regular de la ruta, función(params, datos, query) => [estado, respuesta]]
 	const rutas = [
 		["POST", /^\/api\/medico\/login$/, (p, datos) => {
-			// En la demo vale cualquier usuario y contraseña
-			const medico = db.medicos.find(m => m.DNI === datos.dni && m.Password === datos.password) || db.medicos[0];
+			const dni = (datos.dni || "").trim();
+			const password = datos.password || "";
+			if (!dni || !password) return [401, { error: "DNI o contraseña incorrectos" }];
+			// Un médico registrado en la demo entra con sus datos; cualquier otro usuario
+			// entra como el médico por defecto, mostrando el usuario que ha escrito
+			let medico = db.medicos.find(m => m.DNI === dni && m.Password === password);
+			if (!medico) {
+				medico = db.medicos[0];
+				medico.DNI = dni;
+				medico.Password = password;
+			}
 			return [200, { idMedico: medico.id }];
 		}],
 		["GET", /^\/api\/medico\/(\d+)$/, (p) => {
@@ -165,7 +159,7 @@ Los datos se pierden al recargar la página.
 		}
 
 		const ruta = url.split("?")[0];
-		let resultado = [404, { error: "Ruta no disponible en modo demo" }];
+		let resultado = [404, { error: "Ruta no encontrada" }];
 		for (const [metodo, patron, manejador] of rutas) {
 			const params = ruta.match(patron);
 			if (metodo === method && params) {
@@ -213,9 +207,31 @@ Los datos se pierden al recargar la página.
 			Diagnostico: null,
 			DiagnosticoIA: "Nevus",
 			Fecha: new Date().toISOString(),
-			Imagen: imagen || imagenNevus(50, 42, 15),
+			Imagen: imagen,
 			abierto: "Si"
 		});
+	}
+
+	/**
+	 * Probabilidades del resultado en modo demo: Nevus siempre es la clase más probable,
+	 * con valores que varían un poco en cada diagnóstico.
+	 */
+	function demoCategorias() {
+		const nevus = 84 + Math.floor(Math.random() * 11); // 84-94 %
+		let resto = 100 - nevus;
+		const melanoma = Math.ceil(resto * (0.4 + Math.random() * 0.2));
+		resto -= melanoma;
+		const basal = Math.ceil(resto * 0.45);
+		resto -= basal;
+		const queratosis = Math.ceil(resto * 0.6);
+		const escamosas = resto - queratosis;
+		return [
+			{ name: "Nevus", percentage: nevus, color: "#137DC5" },
+			{ name: "Melanoma", percentage: melanoma, color: "#2199ea" },
+			{ name: "Basal Cell Carcinoma", percentage: basal, color: "#0f5f96" },
+			{ name: "Actinic Keratosis", percentage: queratosis, color: "#50aeee" },
+			{ name: "Squamous Cell Carcinoma", percentage: escamosas, color: "#e6e6e6" }
+		];
 	}
 
 	// Sustituye la librería REST: modo demo -> datos simulados, modo real -> servidor
@@ -229,4 +245,5 @@ Los datos se pierden al recargar la página.
 
 	window.rest = rest;
 	window.demoGuardarInforme = demoGuardarInforme;
+	window.demoCategorias = demoCategorias;
 })();

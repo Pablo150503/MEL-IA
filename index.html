@@ -27,9 +27,6 @@
 </head>
 <body>
 
-<!-- Distintivo visible en todas las pantallas mientras se usa el modo demo -->
-<div class="badge-demo">DEMO</div>
-
 <!-- PANTALLA 0: SELECCIÓN DE MODO -->
 <div id="modo" class="vista">
   <div class="contenedor-modo">
@@ -47,6 +44,10 @@
         <span class="btn-modo-desc">Works offline with sample data</span>
       </button>
     </div>
+    <!-- Instalar como app / acceso directo (se oculta si ya está instalada, ver pwa.js) -->
+    <button class="btn-instalar" onclick="instalarApp()">
+      <i class="fas fa-download"></i> Install app
+    </button>
   </div>
 </div>
 
@@ -61,7 +62,6 @@
     <input type="text" id="dni" name="dni" placeholder="User" required>
     <input type="password" id="password" name="password" placeholder="Password" required>
     <button type="button" onclick="login()">Login</button>
-    <p class="texto-demo">Demo: any user and password will work</p>
   </form>
   <p class="texto-pequeño">Not registred yet? <a href="#" onclick="cambiarVista('registro')">Register here</a></p>
   <p class="texto-pequeño texto-cambiar-modo"><a href="#" onclick="cambiarVista('modo')"><i class="fas fa-exchange-alt"></i> Change mode</a></p>
@@ -137,7 +137,7 @@
     <main class="pregunta-container">
       <h2 class="pregunta-texto">¿SIP?</h2>
       <div class="botones-sip">
-        <button class="btn-sip btn-si" onclick="faltaImplementacion()">Yes</button>
+        <button class="btn-sip btn-si" onclick="vistaSeguimiento()">Yes</button>
         <button class="btn-sip btn-no" onclick="cambiarVista('formulario')">No</button>
       </div>
     </main>
@@ -286,10 +286,10 @@
       <option value="5">Head/Neck</option>
       <option value="6">Palms/Soles</option>
       <option value="7">Oral/Genital</option>
-  </select>    <button class="btn-enviar" onclick="enviarDiagnostico()">Enviar</button>
+  </select>    <button class="btn-enviar" onclick="enviarDiagnostico()">Send</button>
   </div>
 
-  <button class="btn-volver1" onclick="cambiarVista('inicio')">Volver</button>
+  <button class="btn-volver1" onclick="cambiarVista('inicio')">Go back</button>
 </div>
 
 
@@ -297,7 +297,7 @@
 <div id="pantallaCarga" class="vista">
   <div class="contenedor-carga">
       <div class="spinner"></div>
-      <p class="texto-carga">Analizando imagen y generando diagnóstico...</p>
+      <p class="texto-carga">Analyzing image and generating diagnosis...</p>
   </div>
 </div>
 
@@ -402,8 +402,8 @@
   <div class="modal-content">
     <p id="modalTextoCerrarCaso"></p>
     <div class="modal-botones">
-      <button id="btnConfirmarCerrarCaso" class="btn-confirmar">Cerrar Caso</button>
-      <button onclick="cerrarModalCerrarCaso()" class="btn-cancelar">Cancelar</button>
+      <button id="btnConfirmarCerrarCaso" class="btn-confirmar">Close Case</button>
+      <button onclick="cerrarModalCerrarCaso()" class="btn-cancelar">Cancel</button>
     </div>
   </div>
 </div>
@@ -489,13 +489,13 @@
       <span id="userDNI"></span>
     </div>
   </header>
-  <h2 class="titulo2">Evolución de la Lesión</h2>
+  <h2 class="titulo2">Injury Evolution</h2>
   
   <div id="contenedorImagenes" class="contenedor-imagenes">
     <!-- Las imágenes se cargarán aquí dinámicamente -->
   </div>
 
-  <button class="btn-volver" onclick="cambiarVista('detallePaciente')">Volver</button>
+  <button class="btn-volver" onclick="cambiarVista('detallePaciente')">Go back</button>
 </div>
 
 

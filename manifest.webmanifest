@@ -1,6 +1,8 @@
 {
   "name": "MEL-IA",
   "short_name": "MEL-IA",
+  "description": "AI-assisted teledermatology for skin lesion diagnosis",
+  "categories": ["medical", "health"],
   "id": "/",
   "start_url": "./",
   "scope": "/",

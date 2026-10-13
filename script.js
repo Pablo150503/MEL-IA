@@ -16,7 +16,6 @@ var nuevoDiagnostico = null;
 function elegirModo(modo) {
   modoDemo = (modo === "demo");
   medicoActual = null;
-  document.body.classList.toggle("modo-demo", modoDemo);
   document.getElementById("errorMensaje").style.display = "none";
   cambiarVista("credenciales");
 }
@@ -54,7 +53,7 @@ function login() {
 
       } else if (codigo === 401) {
           // 🔴 Mostrar mensaje de error en rojo
-          errorMensaje.textContent = "DNI o contraseña incorrectos";
+          errorMensaje.textContent = "User or password incorrect";
           errorMensaje.style.display = "block";
           document.getElementById("dni").value = "";
           document.getElementById("password").value = "";
@@ -81,8 +80,8 @@ function registrarUsuario() {
   let especialidad = especialidadElement ? especialidadElement.textContent.trim() : "";
 
   // Validación básica
-  if (!nombre || !apellidos || !dni || !password || especialidad === "Selecciona tu especialidad") {
-      errorMensaje.textContent = "Por favor, completa todos los campos.";
+  if (!nombre || !apellidos || !dni || !password || especialidad === "Select your specialty") {
+      errorMensaje.textContent = "Please fill in all the fields.";
       errorMensaje.style.display = "block";
       return;
   }
@@ -120,19 +119,19 @@ function registrarUsuario() {
           apellidosInput.value = "";
           dniInput.value = "";
           passwordInput.value = "";
-          especialidadElement.textContent = "Selecciona tu especialidad"; // Reiniciar el selector
+          especialidadElement.textContent = "Select your specialty"; // Reiniciar el selector
           errorMensaje.style.display = "block";
 
           cambiarVista("inicio"); // Ir a la pantalla de inicio de sesión
       } else if (codigo === 409) { // Error 409: conflicto, el DNI ya está registrado
-          errorMensaje.textContent = "El DNI ya está registrado.";
+          errorMensaje.textContent = "The user is already registered.";
           errorMensaje.style.display = "block";
 
           // 🔹 Solo limpiar el campo del DNI
           dniInput.value = "";
       } else {
           console.log("Error en el registro:", respuesta);
-          errorMensaje.textContent = "Error en el registro. Inténtalo de nuevo.";
+          errorMensaje.textContent = "Registration error. Please try again.";
           errorMensaje.style.display = "block";
       }
   });
@@ -213,7 +212,7 @@ function abrirModalCerrarCaso(button, sip, lesionId) {
     const modalTexto = document.getElementById("modalTextoCerrarCaso");
     const btnConfirmar = document.getElementById("btnConfirmarCerrarCaso");
   
-    modalTexto.textContent = `Are you sure that you want to delete the patient with SIP ${sip}?`;
+    modalTexto.textContent = `Are you sure that you want to close the case of the patient with SIP ${sip}?`;
     modal.style.display = "flex"; // Muestra el modal
   
     // Asigna la función de cierre al botón de confirmación
@@ -306,7 +305,7 @@ function abrirModalSeguimiento(sip, lesionId) {
     const modal = document.getElementById("modalSeguimiento");
     document.getElementById("seguimientoNombre").textContent = `Tracking of the Injury ${lesionId}`;
     const listaInformes = document.getElementById("listaInformes");
-    listaInformes.innerHTML = "<p>Cargando informes...</p>";
+    listaInformes.innerHTML = "<p>Loading reports...</p>";
 
     // 🔥 Guardar el paciente actual para usarlo después
     pacienteActual = { SIP: sip, lesionId: lesionId };
@@ -317,7 +316,7 @@ function abrirModalSeguimiento(sip, lesionId) {
             listaInformes.innerHTML = "";
 
             if (datos.length === 0) {
-                listaInformes.innerHTML = "<p>No hay informes para esta lesión.</p>";
+                listaInformes.innerHTML = "<p>There are no reports for this injury.</p>";
                 return;
             }
 
@@ -343,7 +342,7 @@ function abrirModalSeguimiento(sip, lesionId) {
                 li.style.background = informe.Diagnostico ? "#d4edda" : "#fff3cd"; // Verde si tiene diagnóstico, amarillo si no
                 li.style.color = informe.Diagnostico ? "#155724" : "#856404";
 
-                let fechaFormateada = "Fecha no disponible";
+                let fechaFormateada = "Date not available";
                 if (informe.Fecha) {
                     let fecha = new Date(informe.Fecha);
                     if (!isNaN(fecha.getTime())) {
@@ -365,7 +364,7 @@ function abrirModalSeguimiento(sip, lesionId) {
                 listaInformes.appendChild(li);
             });
         } else {
-            listaInformes.innerHTML = "<p>Error al cargar los informes.</p>";
+            listaInformes.innerHTML = "<p>Error loading the reports.</p>";
         }
     });
 
@@ -382,11 +381,11 @@ function verImagen(informe) {
         if (codigo === 200 && data.paciente) {
             document.getElementById("informePaciente").textContent = `${data.paciente.Nombre} ${data.paciente.Apellidos}`;
         } else {
-            document.getElementById("informePaciente").textContent = `Paciente ID: ${informe.PacientesId}`;
+            document.getElementById("informePaciente").textContent = `Patient ID: ${informe.PacientesId}`;
         }
     });
 
-    document.getElementById("informeDiagnostico").textContent = informe.Diagnostico || "No diagnosticado";
+    document.getElementById("informeDiagnostico").textContent = informe.Diagnostico || "Not diagnosed";
 
     // Mostrar el botón "Diagnosticar" solo si el informe no tiene diagnóstico
     const botonDiagnostico = document.getElementById("btnDiagnosticar");
@@ -396,7 +395,7 @@ function verImagen(informe) {
         botonDiagnostico.style.display = "none";
     }
 
-    document.getElementById("informeDiagnosticoIA").textContent = informe.DiagnosticoIA || "No disponible";
+    document.getElementById("informeDiagnosticoIA").textContent = informe.DiagnosticoIA || "Not available";
     document.getElementById("informeFecha").textContent = new Date(informe.Fecha).toLocaleDateString();
     document.getElementById("imagenInforme").src = informe.Imagen;
     informeActual = informe.id;
@@ -407,7 +406,7 @@ function verImagen(informe) {
 function guardarNotaInforme() {
     const nota = document.getElementById("notaInforme").value.trim();
     if (!nota) {
-        alert("La nota no puede estar vacía.");
+        alert("The note cannot be empty.");
         return;
     }
     InformeId = informeActual;
@@ -418,7 +417,7 @@ function guardarNotaInforme() {
             cargarNotas(InformeId); // 🔄 Recargar notas
         } else {
             console.error("Error al guardar la nota:", respuesta);
-            alert("Error al guardar la nota.");
+            alert("Error saving the note.");
         }
     });
 }
@@ -538,7 +537,7 @@ function abrirDetallePaciente(id, nombre, sip) {
                 containerActivos.appendChild(card);
               });
             } else {
-              containerActivos.innerHTML = "<p>No hay casos activos</p>";
+              containerActivos.innerHTML = "<p>There are no active cases</p>";
             }
     
             // Llenar el contenedor de casos cerrados
@@ -547,7 +546,7 @@ function abrirDetallePaciente(id, nombre, sip) {
                 containerCerrados.appendChild(card);
               });
             } else {
-              containerCerrados.innerHTML = "<p>No hay casos cerrados</p>";
+              containerCerrados.innerHTML = "<p>There are no closed cases</p>";
             }
           } else {
             console.error("Error al obtener las lesiones.");
@@ -566,7 +565,7 @@ function resetModalDiagnostico() {
       selectContainer.dataset.selected = "";
       selectContainer.removeAttribute("data-selected");
       // Volver al texto por defecto
-      selectContainer.querySelector(".custom-select").textContent = "Posibles Diagnósticos";
+      selectContainer.querySelector(".custom-select").textContent = "Possible Diagnoses";
     }
 }
   
@@ -635,15 +634,15 @@ function guardarDiagnostico() {
     }
   
     const selectedOption = selectContainer.dataset.selected || "";
-    const opcionesValidas = ["Nevus", "Melanoma", "Carcinoma de Cél. Basales", "Carcinoma de Cél. Escamosas", "Queratosis Actinica"];
+    const opcionesValidas = ["Nevus", "Melanoma", "Basal Cell Carcinoma", "Squamous Cell Carcinoma", "Actinic Keratosis"];
   
     if (!opcionesValidas.includes(selectedOption)) {
-      alert("Por favor, selecciona un diagnóstico válido.");
+      alert("Please select a valid diagnosis.");
       return;
     }
   
     if (!informeActual) {
-      alert("No se ha seleccionado un informe.");
+      alert("No report has been selected.");
       return;
     }
   
@@ -671,7 +670,7 @@ function guardarDiagnostico() {
   
         document.getElementById("btnDiagnosticar").style.display = "none"; // Ocultar botón tras diagnóstico
       } else {
-        alert("Error al actualizar el diagnóstico.");
+        alert("Error updating the diagnosis.");
       }
     });
   }
@@ -690,7 +689,7 @@ function abrirEvolucionLesion() {
     cambiarVista("evolucionLesion");
 
     const contenedorImagenes = document.getElementById("contenedorImagenes");
-    contenedorImagenes.innerHTML = "<p>Cargando imágenes...</p>";
+    contenedorImagenes.innerHTML = "<p>Loading images...</p>";
 
     // Asegurar que la URL está bien formada
     const url = `/api/informes/${encodeURIComponent(sip)}/${encodeURIComponent(lesionId)}`;
@@ -700,7 +699,7 @@ function abrirEvolucionLesion() {
             contenedorImagenes.innerHTML = "";
 
             if (datos.length === 0) {
-                contenedorImagenes.innerHTML = "<p>No hay imágenes registradas para esta lesión.</p>";
+                contenedorImagenes.innerHTML = "<p>There are no images for this injury.</p>";
                 return;
             }
 
@@ -720,14 +719,14 @@ function abrirEvolucionLesion() {
             });
         } else {
             console.error("❌ Error en la respuesta de la API:", datos);
-            contenedorImagenes.innerHTML = "<p>Error al cargar las imágenes.</p>";
+            contenedorImagenes.innerHTML = "<p>Error loading the images.</p>";
         }
     });
 }
 
 function diagnostico1() {
     if (!medicoActual || !medicoActual.id) {
-        mostrarErrorDiagnostico("Error: No se encontró el médico actual.");
+        mostrarErrorDiagnostico("Error: the current doctor was not found.");
         return;
     }
 
@@ -754,7 +753,7 @@ function diagnostico1() {
     // Validar que todos los campos estén llenos
     if (!nuevoPaciente.nombre || !nuevoPaciente.apellidos || !nuevoPaciente.edad || 
         !nuevoPaciente.sip || nuevoPaciente.sexo === "Seleccionar sexo" || nuevoPaciente.sexo === "No definido") {
-        mostrarErrorDiagnostico("Por favor, completa todos los campos antes de continuar.");
+        mostrarErrorDiagnostico("Please fill in all the fields before continuing.");
         return;
     }
 
@@ -771,7 +770,7 @@ function diagnostico1() {
 
         } else {
             console.error("Error al registrar paciente:", respuesta);
-            mostrarErrorDiagnostico("Hubo un error al registrar el paciente. Inténtalo de nuevo.");
+            mostrarErrorDiagnostico("There was an error registering the patient. Please try again.");
         }
     });
 }
@@ -1150,13 +1149,7 @@ function detectarClicEnModelo(event, camera, scene) {
     cambiarVista("resultados");
 
     // Tus categorías de diagnóstico (en modo demo el resultado siempre es Nevus)
-    const categories = modoDemo ? [
-      { name: "Nevus", percentage: 92, color: "#137DC5" },
-      { name: "Melanoma", percentage: 4, color: "#2199ea" },
-      { name: "Basal Cell Carcinoma", percentage: 2, color: "#0f5f96" },
-      { name: "Actinic Keratosis", percentage: 1, color: "#50aeee" },
-      { name: "Squamous Cell Carcinoma", percentage: 1, color: "#e6e6e6" }
-    ] : [
+    const categories = modoDemo ? demoCategorias() : [
       { name: "Nevus Melanocítico", percentage: 75, color: "#137DC5" },
       { name: "Melanoma", percentage: 15, color: "#2199ea" },
       { name: "Carcinoma de Cél. Basales", percentage: 5, color: "#0f5f96" },

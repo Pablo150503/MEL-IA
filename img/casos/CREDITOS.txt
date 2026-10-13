@@ -1,0 +1,12 @@
+Imágenes dermatoscópicas de nevus usadas en los casos de ejemplo del modo demo.
+
+Fuente: ISIC Archive - HAM10000 (https://www.isic-archive.com)
+  caso-1a.jpg, caso-1b.jpg  ISIC_0029483
+  caso-2.jpg                ISIC_0025017
+  caso-3.jpg                ISIC_0025436
+  caso-4.jpg                ISIC_0029378
+  caso-5.jpg                ISIC_0025338
+
+Tschandl P., Rosendahl C., Kittler H. The HAM10000 dataset, a large collection of
+multi-source dermatoscopic images of common pigmented skin lesions. Sci. Data 5, 180161 (2018).
+Licencia: CC BY-NC 4.0 (uso no comercial, con atribución). Imágenes redimensionadas a 600x450.

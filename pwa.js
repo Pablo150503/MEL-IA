@@ -86,6 +86,23 @@
       "  #pwa-install-banner{padding:10px 12px;}",
       "  #pwa-install-banner .pwa-text span{display:none;}",
       "}",
+      "#pwa-install-help{",
+      "  position:fixed;inset:0;z-index:100000;display:flex;align-items:flex-end;justify-content:center;",
+      "  background:rgba(0,0,0,0.45);",
+      "}",
+      "#pwa-install-help .pwa-sheet{",
+      "  width:100%;max-width:440px;background:#fff;border-radius:18px 18px 0 0;",
+      "  padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 20px);",
+      "  font-family:inherit;color:#0f5f96;text-align:left;",
+      "  box-shadow:0 -6px 20px rgba(0,0,0,0.15);",
+      "}",
+      "#pwa-install-help h3{margin:0 0 12px;font-size:19px;color:#00406a;text-align:center;}",
+      "#pwa-install-help ol{margin:0 0 18px;padding-left:22px;font-size:15px;line-height:1.5;}",
+      "#pwa-install-help li{margin-bottom:8px;}",
+      "#pwa-install-help .pwa-close{",
+      "  display:block;width:100%;margin:0;padding:12px;border:none;border-radius:25px;",
+      "  background:#137DC5;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;",
+      "}",
     ].join("\n");
     document.head.appendChild(style);
   }
@@ -187,16 +204,7 @@
     showBanner(
       "<strong>Install MEL-IA</strong><span>Add it to your home screen for quick, full-screen access.</span>",
       function () {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice
-          .then(function () {
-            deferredPrompt = null;
-            hideBanner();
-          })
-          .catch(function () {
-            deferredPrompt = null;
-          });
+        window.instalarApp();
       }
     );
   });
@@ -204,7 +212,13 @@
   window.addEventListener("appinstalled", function () {
     hideBanner();
     deferredPrompt = null;
+    markInstalled();
   });
+
+  // Hides the in-app "Install app" button (see .pwa-instalada in styles.css).
+  function markInstalled() {
+    document.documentElement.classList.add("pwa-instalada");
+  }
 
   // ---------------------------------------------------------------------
   // iOS Safari: no install prompt API exists, show a manual hint instead.
@@ -226,11 +240,85 @@
   }
 
   // ---------------------------------------------------------------------
+  // "Install app" button: native prompt when the browser offers one,
+  // otherwise step-by-step instructions to add the home-screen shortcut.
+  // ---------------------------------------------------------------------
+  function installSteps() {
+    var ua = window.navigator.userAgent || "";
+    if (isIOS()) {
+      if (isSafari()) {
+        return [
+          "Tap the <strong>Share</strong> button ⬆︎ in Safari's toolbar.",
+          "Scroll down and tap <strong>Add to Home Screen</strong>.",
+          "Tap <strong>Add</strong>. MEL-IA will appear on your home screen."
+        ];
+      }
+      return [
+        "Tap the <strong>Share</strong> button ⬆︎ of your browser and choose <strong>Add to Home Screen</strong>.",
+        "If that option doesn't appear, open this page in <strong>Safari</strong> and do it from there.",
+        "Tap <strong>Add</strong>. MEL-IA will appear on your home screen."
+      ];
+    }
+    if (/Android/.test(ua)) {
+      return [
+        "Open the browser menu <strong>⋮</strong> (top right).",
+        "Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.",
+        "Confirm. MEL-IA will appear on your home screen and app drawer."
+      ];
+    }
+    return [
+      "Click the <strong>install</strong> icon in the address bar, or open the browser menu.",
+      "Choose <strong>Install MEL-IA</strong> (or <strong>Create shortcut</strong>).",
+      "Confirm to open MEL-IA in its own window."
+    ];
+  }
+
+  function showInstallHelp() {
+    injectStyles();
+    var old = document.getElementById("pwa-install-help");
+    if (old) old.remove();
+    var overlay = document.createElement("div");
+    overlay.id = "pwa-install-help";
+    overlay.innerHTML =
+      '<div class="pwa-sheet" role="dialog" aria-label="Install MEL-IA">' +
+      "<h3>Install MEL-IA</h3>" +
+      "<ol><li>" + installSteps().join("</li><li>") + "</li></ol>" +
+      '<button type="button" class="pwa-close">OK</button>' +
+      "</div>";
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay || event.target.classList.contains("pwa-close")) {
+        overlay.remove();
+      }
+    });
+    document.body.appendChild(overlay);
+  }
+
+  window.instalarApp = function () {
+    if (!deferredPrompt) {
+      showInstallHelp();
+      return;
+    }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice
+      .then(function (choice) {
+        deferredPrompt = null;
+        hideBanner();
+        if (choice && choice.outcome === "accepted") markInstalled();
+      })
+      .catch(function () {
+        deferredPrompt = null;
+      });
+  };
+
+  // ---------------------------------------------------------------------
   // Init
   // ---------------------------------------------------------------------
   function init() {
     registerServiceWorker();
-    if (isStandalone()) return;
+    if (isStandalone()) {
+      markInstalled();
+      return;
+    }
     if (isIOS()) {
       // No beforeinstallprompt on iOS; show the manual hint once things
       // have settled a bit so it doesn't compete with the initial render.
