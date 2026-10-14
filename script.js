@@ -7,6 +7,7 @@ var modoDemo = false; // true: la app funciona sin servidor con los datos simula
 var medicoActual = null;
 var informeActual = null;
 var pacienteActual = null;
+var pacienteDetalle = null; // Datos completos del paciente abierto en el seguimiento (para exportar)
 var nuevoPaciente = null;
 var nuevoDiagnostico = null;
 
@@ -477,6 +478,7 @@ function abrirDetallePaciente(id, nombre, sip) {
     // Obtener detalles del paciente
     rest.get(`/api/paciente/${id}`, function (codigo, paciente) {
       if (codigo === 200) {
+        pacienteDetalle = paciente.paciente;
         document.getElementById("detalleEdad").textContent = paciente.paciente.Edad;
         document.getElementById("detalleSexo").textContent = paciente.paciente.Sexo;
         
@@ -1130,18 +1132,57 @@ function detectarClicEnModelo(event, camera, scene) {
   
 
   /**
-   * Botón "Start Diagnostics". En modo demo se guarda el informe en los datos simulados
-   * y se muestra la pantalla de carga antes de los resultados.
+   * Botón "Start Diagnostics": muestra la animación de análisis y después los resultados.
+   * En modo demo además se guarda el informe en los datos simulados.
    */
   function iniciarDiagnostico() {
-    if (!modoDemo) {
-      generarCirculos();
-      return;
-    }
     const imagen = document.querySelector("#vistaPrevia img");
-    demoGuardarInforme(imagen ? imagen.src : "");
+    if (modoDemo) {
+      demoGuardarInforme(imagen ? imagen.src : "");
+    }
+    mostrarCarga(imagen ? imagen.src : "", generarCirculos);
+  }
+
+  const PASOS_CARGA = [
+    "Preprocessing the image",
+    "Detecting the lesion",
+    "Running the AI model",
+    "Generating the report"
+  ];
+  const DURACION_PASO_CARGA = 1100; // ms por paso
+
+  /**
+   * Pantalla de carga animada: escaneo sobre la foto, pasos del análisis y barra de progreso.
+   */
+  function mostrarCarga(imagen, alTerminar) {
+    document.getElementById("cargaImagen").src = imagen;
+    const lista = document.getElementById("pasosCarga");
+    const barra = document.getElementById("barraCarga");
+    const porcentaje = document.getElementById("porcentajeCarga");
+    lista.innerHTML = PASOS_CARGA.map(paso => `<li><i></i><span>${paso}</span></li>`).join("");
     cambiarVista("pantallaCarga");
-    setTimeout(generarCirculos, 2500);
+
+    const duracion = PASOS_CARGA.length * DURACION_PASO_CARGA;
+    const inicio = performance.now();
+
+    function pintar(ahora) {
+      const progreso = Math.min((ahora - inicio) / duracion, 1);
+      const pasoActual = Math.min(Math.floor(progreso * PASOS_CARGA.length), PASOS_CARGA.length);
+      [...lista.children].forEach((li, i) => {
+        const hecho = i < pasoActual || progreso === 1;
+        li.className = hecho ? "hecho" : (i === pasoActual ? "activo" : "");
+        li.firstElementChild.className = hecho ? "fas fa-check-circle" : (i === pasoActual ? "fas fa-circle-notch fa-spin" : "fas fa-circle");
+      });
+      barra.style.width = `${(progreso * 100).toFixed(1)}%`;
+      porcentaje.textContent = `${Math.floor(progreso * 100)}%`;
+
+      if (progreso < 1) {
+        requestAnimationFrame(pintar);
+      } else {
+        setTimeout(alTerminar, 400);
+      }
+    }
+    requestAnimationFrame(pintar);
   }
 
   function generarCirculos() {
@@ -1150,35 +1191,32 @@ function detectarClicEnModelo(event, camera, scene) {
 
     // Tus categorías de diagnóstico (en modo demo el resultado siempre es Nevus)
     const categories = modoDemo ? demoCategorias() : [
-      { name: "Nevus Melanocítico", percentage: 75, color: "#137DC5" },
-      { name: "Melanoma", percentage: 15, color: "#2199ea" },
-      { name: "Carcinoma de Cél. Basales", percentage: 5, color: "#0f5f96" },
-      { name: "Queratosis Actínica", percentage: 3, color: "#50aeee" },
-      { name: "Carcinoma de Cél. Escamosas", percentage: 2, color: "#e6e6e6" }
+      { name: "Melanocytic Nevus", percentage: 75.3, color: "#137DC5" },
+      { name: "Melanoma", percentage: 14.8, color: "#2199ea" },
+      { name: "Basal Cell Carcinoma", percentage: 5.2, color: "#0f5f96" },
+      { name: "Actinic Keratosis", percentage: 2.9, color: "#50aeee" },
+      { name: "Squamous Cell Carcinoma", percentage: 1.8, color: "#9fb8cc" }
     ];
-  
-    const maxSize = 150; // Tamaño máximo para los círculos
+
     const container = document.getElementById("circle-container");
     container.innerHTML = ""; // Limpiar contenido previo
-  
-    // Genera cada círculo con su etiqueta
+
+    // Genera cada círculo con su etiqueta (el tamaño se ajusta después a la pantalla)
     categories.forEach((category) => {
-      const size = (category.percentage / 100) * maxSize + 50; // Tamaño proporcional con mínimo de 50px
       const circleItem = document.createElement("div");
       circleItem.classList.add("circle-item");
-  
+
       const circle = document.createElement("div");
       circle.classList.add("circle");
-      circle.style.width = `${size}px`;
-      circle.style.height = `${size}px`;
+      circle.dataset.percentage = category.percentage;
       circle.style.backgroundColor = category.color;
-      circle.textContent = `${category.percentage}%`;
-  
+      circle.textContent = `${category.percentage.toFixed(1)}%`;
+
       const label = document.createElement("span");
       label.classList.add("circle-label");
       label.textContent = category.name;
       label.style.color = category.color;
-  
+
       circleItem.appendChild(circle);
       circleItem.appendChild(label);
       container.appendChild(circleItem);
@@ -1204,40 +1242,49 @@ function detectarClicEnModelo(event, camera, scene) {
     ];
   
     exportOptions.forEach(opt => {
-      // Contenedor para el icono y su etiqueta
+      // Contenedor para el icono y su etiqueta (todo él es pulsable)
       const optionContainer = document.createElement("div");
       optionContainer.classList.add("export-option");
-  
+      optionContainer.addEventListener("click", opt.callback);
+
       const icon = document.createElement("i");
       icon.className = opt.iconClass + " export-icon";
-      icon.addEventListener("click", opt.callback);
-  
+
       const label = document.createElement("span");
       label.classList.add("export-label");
       label.textContent = opt.type;
-  
+
       optionContainer.appendChild(icon);
       optionContainer.appendChild(label);
       exportContainer.appendChild(optionContainer);
     });
-  
+
     container.appendChild(exportContainer);
+
+    ajustarCirculos();
+    prepararExportacion(categories); // exportar.js
   }
-  
-  // Funciones de ejemplo para exportar (modifica según tus necesidades)
-  function exportHL7() {
-    console.log("Exportando a HL7...");
+
+  /**
+   * Da tamaño a los círculos según el alto de la pantalla para que los resultados
+   * quepan sin scroll vertical. Si aun así no caben, los va reduciendo.
+   */
+  function ajustarCirculos() {
+    const pantalla = document.getElementById("resultados");
+    const circulos = pantalla.querySelectorAll(".circle");
+    const alto = window.innerHeight;
+    let escala = 1;
+
+    for (let intento = 0; intento < 12; intento++) {
+      const minimo = Math.max(30, Math.min(50, alto * 0.055)) * escala;
+      const extra = Math.max(50, Math.min(150, alto * 0.17)) * escala;
+      circulos.forEach(circulo => {
+        const size = (Number(circulo.dataset.percentage) / 100) * extra + minimo;
+        circulo.style.width = `${size}px`;
+        circulo.style.height = `${size}px`;
+        circulo.style.fontSize = `${Math.max(11, Math.min(18, size * 0.2))}px`;
+      });
+      if (pantalla.scrollHeight <= pantalla.clientHeight) break;
+      escala *= 0.9;
+    }
   }
-  function exportDICOM() {
-    console.log("Exportando a DICOM...");
-  }
-  function exportPDF() {
-    console.log("Exportando a PDF...");
-  }
-  function exportJSON() {
-    console.log("Exportando a JSON...");
-  }
-  function exportXML() {
-    console.log("Exportando a XML...");
-  }
-  

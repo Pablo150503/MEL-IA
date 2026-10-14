@@ -217,20 +217,21 @@ Los datos se pierden al recargar la página.
 	 * con valores que varían un poco en cada diagnóstico.
 	 */
 	function demoCategorias() {
-		const nevus = 84 + Math.floor(Math.random() * 11); // 84-94 %
-		let resto = 100 - nevus;
-		const melanoma = Math.ceil(resto * (0.4 + Math.random() * 0.2));
+		// Se trabaja en décimas para que los cinco valores sumen exactamente 100,0 %
+		const nevus = 840 + Math.floor(Math.random() * 110); // 84,0-94,9 %
+		let resto = 1000 - nevus;
+		const melanoma = Math.round(resto * (0.4 + Math.random() * 0.2));
 		resto -= melanoma;
-		const basal = Math.ceil(resto * 0.45);
+		const basal = Math.round(resto * (0.4 + Math.random() * 0.15));
 		resto -= basal;
-		const queratosis = Math.ceil(resto * 0.6);
+		const queratosis = Math.round(resto * (0.55 + Math.random() * 0.15));
 		const escamosas = resto - queratosis;
 		return [
-			{ name: "Nevus", percentage: nevus, color: "#137DC5" },
-			{ name: "Melanoma", percentage: melanoma, color: "#2199ea" },
-			{ name: "Basal Cell Carcinoma", percentage: basal, color: "#0f5f96" },
-			{ name: "Actinic Keratosis", percentage: queratosis, color: "#50aeee" },
-			{ name: "Squamous Cell Carcinoma", percentage: escamosas, color: "#e6e6e6" }
+			{ name: "Nevus", percentage: nevus / 10, color: "#137DC5" },
+			{ name: "Melanoma", percentage: melanoma / 10, color: "#2199ea" },
+			{ name: "Basal Cell Carcinoma", percentage: basal / 10, color: "#0f5f96" },
+			{ name: "Actinic Keratosis", percentage: queratosis / 10, color: "#50aeee" },
+			{ name: "Squamous Cell Carcinoma", percentage: escamosas / 10, color: "#9fb8cc" }
 		];
 	}
 

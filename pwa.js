@@ -103,6 +103,28 @@
       "  display:block;width:100%;margin:0;padding:12px;border:none;border-radius:25px;",
       "  background:#137DC5;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;",
       "}",
+      "#pwa-update{",
+      "  position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;",
+      "  padding:20px;background:rgba(0,0,0,0.45);font-family:inherit;",
+      "}",
+      "#pwa-update .pwa-update-card{",
+      "  width:100%;max-width:340px;background:#fff;border-radius:18px;padding:24px 20px 18px;",
+      "  text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.2);animation:pwaAparecer .25s ease;",
+      "}",
+      "#pwa-update .pwa-update-icon{",
+      "  width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#E3F2FD;",
+      "  display:flex;align-items:center;justify-content:center;color:#137DC5;font-size:26px;",
+      "}",
+      "#pwa-update h3{margin:0 0 8px;font-size:19px;color:#00406a;}",
+      "#pwa-update p{margin:0 0 6px;font-size:14px;line-height:1.45;color:#0f5f96;}",
+      "#pwa-update .pwa-update-nota{font-size:12px;color:#5f6368;margin-bottom:16px;}",
+      "#pwa-update button{",
+      "  display:block;width:100%;margin:8px 0 0;padding:12px;border-radius:25px;",
+      "  font-size:16px;font-weight:bold;cursor:pointer;font-family:inherit;",
+      "}",
+      "#pwa-update .pwa-update-ahora{background:#137DC5;color:#fff;border:none;}",
+      "#pwa-update .pwa-update-luego{background:#fff;color:#137DC5;border:2px solid #137DC5;}",
+      "@keyframes pwaAparecer{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}",
     ].join("\n");
     document.head.appendChild(style);
   }
@@ -311,10 +333,124 @@
   };
 
   // ---------------------------------------------------------------------
+  // Update popup: detects a new deployment (e.g. a commit to main that
+  // Vercel publishes) by comparing a fingerprint of the app files that are
+  // running with the ones on the server. The user can update now or wait;
+  // after 15 minutes the app updates itself (but never in the middle of a
+  // diagnosis).
+  // ---------------------------------------------------------------------
+  var VERSION_FILES = [
+    "index.html", "script.js", "styles.css", "demo.js", "exportar.js",
+    "pwa.js", "rest.js", "sw.js", "manifest.webmanifest"
+  ];
+  var CHECK_INTERVAL_MS = 3 * 60 * 1000;
+  var AUTO_UPDATE_MS = 15 * 60 * 1000;
+  // Screens where reloading would interrupt the doctor (script.js view ids).
+  var BUSY_VIEWS = ["formulario", "sitioAnatomico", "seleccionImagen", "pantallaCarga"];
+
+  var runningFingerprint = null;
+  var updateDeadline = null;
+
+  // FNV-1a hash of the files' contents (works without a secure context).
+  function fingerprint(fetchOptions) {
+    return Promise.all(VERSION_FILES.map(function (file) {
+      return fetch(file, fetchOptions).then(function (response) {
+        if (!response.ok) throw new Error(file + " " + response.status);
+        return response.text();
+      });
+    })).then(function (texts) {
+      var text = texts.join("\u0000");
+      var hash = 0x811c9dc5;
+      for (var i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193) >>> 0;
+      }
+      return text.length + "-" + hash.toString(16);
+    });
+  }
+
+  function checkForUpdate() {
+    if (updateDeadline || !runningFingerprint) return;
+    // no-store: bypasses the HTTP cache and the service worker (see sw.js)
+    fingerprint({ cache: "no-store" }).then(function (deployed) {
+      if (deployed !== runningFingerprint && !updateDeadline) {
+        updateDeadline = Date.now() + AUTO_UPDATE_MS;
+        showUpdatePopup();
+      }
+    }).catch(function () {
+      // Offline or server unreachable: try again on the next check.
+    });
+  }
+
+  function showUpdatePopup() {
+    injectStyles();
+    if (document.getElementById("pwa-update")) return;
+    var overlay = document.createElement("div");
+    overlay.id = "pwa-update";
+    overlay.innerHTML =
+      '<div class="pwa-update-card" role="dialog" aria-label="Update available">' +
+      '<div class="pwa-update-icon"><i class="fas fa-sync-alt"></i></div>' +
+      "<h3>Update available</h3>" +
+      "<p>A new version of MEL-IA has been published.</p>" +
+      '<p class="pwa-update-nota">If you wait, the app will update automatically in 15 minutes.</p>' +
+      '<button type="button" class="pwa-update-ahora">Update now</button>' +
+      '<button type="button" class="pwa-update-luego">Later</button>' +
+      "</div>";
+    overlay.querySelector(".pwa-update-ahora").addEventListener("click", applyUpdate);
+    overlay.querySelector(".pwa-update-luego").addEventListener("click", function () {
+      overlay.remove();
+    });
+    document.body.appendChild(overlay);
+  }
+
+  function isBusy() {
+    /* global vistaActual */
+    return typeof vistaActual !== "undefined" && BUSY_VIEWS.indexOf(vistaActual) !== -1;
+  }
+
+  function applyUpdate() {
+    var reload = function () { window.location.reload(); };
+    if (!("serviceWorker" in navigator)) return reload();
+    // Pick up a new sw.js too if there is one; the network-first worker
+    // serves the new files on reload either way.
+    navigator.serviceWorker.getRegistration()
+      .then(function (registration) { return registration && registration.update(); })
+      .catch(function () {})
+      .then(reload);
+  }
+
+  function checkAutoUpdate() {
+    if (updateDeadline && Date.now() >= updateDeadline && !isBusy()) {
+      applyUpdate();
+    }
+  }
+
+  function startUpdateChecks() {
+    // Fingerprint of what this page is running: through the service worker,
+    // which right after load serves the same files the page just used.
+    fingerprint({}).then(function (current) {
+      runningFingerprint = current;
+    }).catch(function () {});
+
+    setInterval(checkForUpdate, CHECK_INTERVAL_MS);
+    setInterval(checkAutoUpdate, 30 * 1000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        checkForUpdate();
+        checkAutoUpdate();
+      }
+    });
+  }
+
+  // For testing from the console: MELIA_checkForUpdate()
+  window.MELIA_checkForUpdate = checkForUpdate;
+
+  // ---------------------------------------------------------------------
   // Init
   // ---------------------------------------------------------------------
   function init() {
     registerServiceWorker();
+    startUpdateChecks();
     if (isStandalone()) {
       markInstalled();
       return;

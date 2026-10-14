@@ -1,6 +1,8 @@
 // MEL-IA service worker
 // Bump this on every deploy that changes cached assets.
-const SW_VERSION = "v2";
+const SW_VERSION = "v4";
+// Same-origin requests wait this long for the network before using the cache.
+const NETWORK_TIMEOUT_MS = 4000;
 const PRECACHE = `melia-precache-${SW_VERSION}`;
 const RUNTIME_SAME_ORIGIN = `melia-runtime-${SW_VERSION}`;
 const RUNTIME_CDN = `melia-cdn-${SW_VERSION}`;
@@ -15,6 +17,7 @@ const PRECACHE_URLS = [
   "script.js",
   "rest.js",
   "demo.js",
+  "exportar.js",
   "pwa.js",
   "logo.png",
   "manifest.webmanifest",
@@ -42,6 +45,7 @@ const CDN_PRECACHE_URLS = [
   "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
   "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js",
   "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
 ];
 
 const CDN_HOSTS = ["cdnjs.cloudflare.com", "cdn.jsdelivr.net"];
@@ -120,21 +124,33 @@ async function networkFirstNavigation(request) {
   }
 }
 
-async function staleWhileRevalidate(request, cacheName) {
+// Network-first so a new deployment is used as soon as the page reloads (the
+// update popup in pwa.js relies on this). If the network is slow, the cached
+// copy is used after NETWORK_TIMEOUT_MS; offline, any cache (runtime or the
+// precached app shell) is used.
+async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  const networkPromise = fetch(request)
-    .then((response) => {
-      if (response && response.ok) {
-        cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => undefined);
+  // "no-cache": always revalidate with the server (cheap 304 if unchanged).
+  // Otherwise the browser's HTTP cache could hand back an old file after an
+  // update, and the page would keep running the previous version.
+  const network = fetch(request, { cache: "no-cache" }).then((response) => {
+    if (response && response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  });
+  network.catch(() => {});
+  const timeout = new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS, "timeout"));
 
-  // Offline and not in the runtime cache yet (e.g. first launch after install):
-  // fall back to the precached app shell.
-  return cached || (await networkPromise) || (await caches.match(request)) || Promise.reject("offline");
+  try {
+    const first = await Promise.race([network, timeout]);
+    if (first !== "timeout") return first;
+    return (await caches.match(request)) || (await network);
+  } catch (err) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    throw err;
+  }
 }
 
 async function cacheFirst(request, cacheName) {
@@ -159,6 +175,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Version checks from pwa.js must see what is deployed, not the cache.
+  if (request.cache === "no-store") {
+    return;
+  }
+
   // Navigations (HTML documents): network-first, offline fallback to index.
   if (request.mode === "navigate") {
     event.respondWith(networkFirstNavigation(request));
@@ -171,9 +192,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Same-origin static assets: stale-while-revalidate.
+  // Same-origin static assets: network-first with cache fallback.
   if (url.origin === self.location.origin) {
-    event.respondWith(staleWhileRevalidate(request, RUNTIME_SAME_ORIGIN));
+    event.respondWith(networkFirst(request, RUNTIME_SAME_ORIGIN));
     return;
   }
 

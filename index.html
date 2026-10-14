@@ -12,6 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- PWA: installable home-screen app support -->
   <link rel="manifest" href="manifest.webmanifest">
@@ -257,13 +258,16 @@
     </div>
   </header>
   
-  <h2 class="titulo2">Results</h2>
+  <!-- Ocupa exactamente la pantalla: sin scroll vertical -->
+  <div class="contenedor-resultados">
+    <h2 class="titulo2">Results</h2>
 
-  <div class="circle-container" id="circle-container">
-    <!-- Los círculos y textos se generarán aquí dinámicamente -->
+    <div class="circle-container" id="circle-container">
+      <!-- Los círculos y textos se generarán aquí dinámicamente -->
+    </div>
+
+    <button class="btn-siguiente" onclick="cambiarVista('inicio')">Go back</button>
   </div>
-
-  <button class="btn-siguiente" onclick="cambiarVista('inicio')">Go back</button>
 </div>
 
 
@@ -296,8 +300,20 @@
 <!-- PANTALLA DE CARGA -->
 <div id="pantallaCarga" class="vista">
   <div class="contenedor-carga">
-      <div class="spinner"></div>
+      <!-- Animación de análisis sobre la foto de la lesión -->
+      <div class="carga-imagen">
+          <img id="cargaImagen" src="" alt="Lesion image">
+          <span class="carga-rejilla"></span>
+          <span class="carga-foco"></span>
+          <span class="carga-esquina sup-izq"></span>
+          <span class="carga-esquina sup-der"></span>
+          <span class="carga-esquina inf-izq"></span>
+          <span class="carga-esquina inf-der"></span>
+      </div>
       <p class="texto-carga">Analyzing image and generating diagnosis...</p>
+      <ul id="pasosCarga" class="pasos-carga"></ul>
+      <div class="barra-carga"><div id="barraCarga"></div></div>
+      <p id="porcentajeCarga" class="porcentaje-carga">0%</p>
   </div>
 </div>
 
@@ -503,6 +519,7 @@
   <script src="script.js"></script>
   <script src="rest.js"></script>
   <script src="demo.js"></script>
+  <script src="exportar.js"></script>
 
 </body>
 </html>

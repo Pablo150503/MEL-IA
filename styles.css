@@ -1795,3 +1795,250 @@ textarea {
 .pwa-instalada .btn-instalar {
     display: none;
 }
+
+/* Pantalla de carga: escaneo animado sobre la foto de la lesión */
+.carga-imagen {
+    position: relative;
+    width: min(230px, 60vw);
+    aspect-ratio: 1;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #0f5f96;
+    box-shadow: 0 10px 30px rgba(19, 125, 197, 0.35);
+}
+
+.carga-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    animation: respirar 2.4s ease-in-out infinite;
+}
+
+/* Rejilla tenue + línea de escaneo que recorre la imagen */
+.carga-rejilla {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+    background-size: 23px 23px;
+}
+
+.carga-imagen::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -35%;
+    height: 35%;
+    background: linear-gradient(to bottom, rgba(80, 174, 238, 0), rgba(80, 174, 238, 0.55) 85%, rgba(255, 255, 255, 0.95) 100%);
+    animation: escanear 1.7s ease-in-out infinite;
+}
+
+/* Círculo de enfoque que late sobre la lesión */
+.carga-foco {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 46%;
+    aspect-ratio: 1;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: latir 1.4s ease-in-out infinite;
+}
+
+.carga-esquina {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 3px solid #ffffff;
+    animation: parpadear 1.4s ease-in-out infinite;
+}
+
+.carga-esquina.sup-izq { top: 12px; left: 12px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+.carga-esquina.sup-der { top: 12px; right: 12px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+.carga-esquina.inf-izq { bottom: 12px; left: 12px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+.carga-esquina.inf-der { bottom: 12px; right: 12px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+
+@keyframes escanear {
+    0% { top: -35%; }
+    100% { top: 100%; }
+}
+
+@keyframes latir {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+}
+
+@keyframes parpadear {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+}
+
+@keyframes respirar {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+}
+
+.pasos-carga {
+    list-style: none;
+    margin-top: 18px;
+    width: 100%;
+    max-width: 280px;
+    text-align: left;
+}
+
+.pasos-carga li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 15px;
+    color: #9fb8cc;
+    transition: color 0.3s ease;
+}
+
+.pasos-carga li i {
+    width: 18px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.pasos-carga li.activo {
+    color: #137DC5;
+    font-weight: bold;
+}
+
+.pasos-carga li.hecho {
+    color: #0f5f96;
+}
+
+.pasos-carga li.hecho i {
+    color: #2ea36b;
+}
+
+.barra-carga {
+    width: 100%;
+    max-width: 280px;
+    height: 8px;
+    margin-top: 16px;
+    border-radius: 4px;
+    background: #dcebf7;
+    overflow: hidden;
+}
+
+#barraCarga {
+    width: 0;
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #137DC5, #50aeee);
+}
+
+.porcentaje-carga {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #137DC5;
+}
+
+/* Pantalla de resultados: ocupa justo la pantalla, sin scroll vertical */
+#resultados {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    padding: calc(env(safe-area-inset-top, 0px) + 72px) 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+}
+
+.contenedor-resultados {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#resultados .titulo2 {
+    margin: 0 0 6px;
+    font-size: 24px;
+}
+
+#resultados .circle-container {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    gap: clamp(4px, 1.2vh, 12px);
+    justify-content: center;
+}
+
+#resultados .circle-label {
+    font-size: 16px;
+}
+
+#resultados .precision-text {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+#resultados .export-container {
+    margin-top: 4px;
+    gap: 16px;
+}
+
+#resultados .export-icon {
+    font-size: 26px;
+}
+
+#resultados .export-label {
+    font-size: 13px;
+}
+
+#resultados .btn-siguiente {
+    flex-shrink: 0;
+    margin: 8px auto 0;
+}
+
+.export-option {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.export-option:active .export-icon {
+    transform: scale(0.9);
+}
+
+/* Aviso breve al exportar */
+.aviso-exportacion {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+    transform: translateX(-50%) translateY(20px);
+    padding: 10px 18px;
+    border-radius: 20px;
+    background: #0f5f96;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 3000;
+}
+
+.aviso-exportacion.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* La pantalla de carga ocupa toda la pantalla, sin márgenes ni scroll */
+#pantallaCarga {
+    padding: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+#pantallaCarga .contenedor-carga {
+    height: 100%;
+    padding: 20px;
+}
