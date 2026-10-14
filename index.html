@@ -6,7 +6,7 @@
   <title>MEL-IA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- Estilos generales y fuentes -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -18,13 +18,13 @@
   <!-- PWA: installable home-screen app support -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#137DC5">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="MEL-IA">
-  <script src="pwa.js" defer></script>
+  <script src="js/pwa.js" defer></script>
 
 </head>
 <body>
@@ -32,7 +32,7 @@
 <!-- PANTALLA 0: SELECCIÓN DE MODO -->
 <div id="modo" class="vista">
   <div class="contenedor-modo">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-modo">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-modo">
     <h2 class="titulo-modo">Select the operating mode</h2>
     <div class="botones-modo">
       <button class="btn-modo btn-modo-real" onclick="elegirModo('real')">
@@ -57,7 +57,7 @@
 <!-- PANTALLA 1: LOGIN -->
 <div id="credenciales" class="vista">
   <header>
-    <img src="logo.png" alt="Logo MEL-IA" class="logoInicio">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logoInicio">
   </header>
   <form id="loginForm">
     <p id="errorMensaje" class="error-texto" style="display: none;">User or password incorrect</p>
@@ -73,7 +73,7 @@
 <!-- PANTALLA 2: REGISTRO -->
 <div id="registro" class="vista">
   <header class="contenedor-header">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo" onclick="cambiarVista('credenciales')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo" onclick="cambiarVista('credenciales')">
     <h2 class="titulo">User Register</h2>
   </header>
   
@@ -99,7 +99,7 @@
 <!-- PANTALLA 3: INICIO -->
 <div id="inicio" class="vista">
   <header class="header-sip">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
     <div class="user-info">
       <span id="userNombre"></span> | 
       <span id="userEspecialidad"></span> | 
@@ -129,7 +129,7 @@
 <!-- PANTALLA 4: ¿SIP? -->
 <div id="pantallaSIP" class="vista">
     <header class="header-sip">
-      <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+      <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
       <div class="user-info">
         <span id="userNombre"></span> | 
         <span id="userEspecialidad"></span> | 
@@ -151,7 +151,7 @@
 <div id="formulario" class="vista">
     <header>
       <header class="header-sip">
-        <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+        <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
         <div class="user-info">
           <span id="userNombre"></span> | 
           <span id="userEspecialidad"></span> | 
@@ -189,7 +189,7 @@
 <!-- PANTALLA 6: SITIO ANATÓMICO -->
 <div id="sitioAnatomico" class="vista">
   <header class="header-sip">
-      <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+      <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
       <div class="user-info">
           <span id="userNombre"></span> | 
           <span id="userEspecialidad"></span> | 
@@ -214,7 +214,7 @@
 <!-- PANTALLA 7: SELECCIÓN DE IMAGEN -->
 <div id="seleccionImagen" class="vista">
   <header class="header-sip">
-      <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+      <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
       <div class="user-info">
           <span id="userNombre"></span> | 
           <span id="userEspecialidad"></span> | 
@@ -251,7 +251,7 @@
 <!-- PANTALLA 8: RESULTADOS -->
 <div id="resultados" class="vista">
   <header class="header-sip">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
     <div class="user-info">
       <span id="userNombre"></span> | 
       <span id="userEspecialidad"></span> | 
@@ -274,7 +274,7 @@
 
 <div id="sAnatomico" class="vista">
   <header class="header-sip">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
     <div class="user-info">
       <span id="userNombre"></span> | 
       <span id="userEspecialidad"></span> | 
@@ -318,7 +318,7 @@
 <!-- PANTALLA 9: SEGUIMIENTO DE PACIENTES -->
 <div id="seguimiento" class="vista">
   <header class="header-sip">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('inicio')">
     <div class="user-info">
       <span id="userNombre"></span> | 
       <span id="userEspecialidad"></span> | 
@@ -350,7 +350,7 @@
 <!-- PANTALLA 10: DETALLES DEL PACIENTE Y SUS LESIONES -->
 <div id="detallePaciente" class="vista">
   <header class="header-sip">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('seguimiento')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('seguimiento')">
     <div class="user-info">
       <span id="userNombre"></span> | 
       <span id="userEspecialidad"></span> | 
@@ -426,7 +426,7 @@
 <!-- PANTALLA 11: INFORME -->
 <div id="pantallaInforme" class="vista" style="display: none;">
   <header class="header-sip">
-      <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('detallePaciente')">
+      <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('detallePaciente')">
       <div class="user-info">
           <span id="userNombre"></span> | 
           <span id="userEspecialidad"></span> | 
@@ -497,7 +497,7 @@
 <!-- PANTALLA 12: EVOLUCIÓN DE LESIÓN -->
 <div id="evolucionLesion" class="vista">
   <header class="header-sip">
-    <img src="logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('detallePaciente')">
+    <img src="assets/logo.png" alt="Logo MEL-IA" class="logo-pequeno" onclick="cambiarVista('detallePaciente')">
     <div class="user-info">
       <span id="userNombre"></span> | 
       <span id="userEspecialidad"></span> | 
@@ -515,10 +515,10 @@
 
 
 
-  <script src="script.js"></script>
-  <script src="rest.js"></script>
-  <script src="demo.js"></script>
-  <script src="exportar.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/rest.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/exportar.js"></script>
 
 </body>
 </html>

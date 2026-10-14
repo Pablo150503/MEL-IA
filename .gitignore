@@ -1,2 +1,10 @@
 ._*
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Resultados de mirth/probar_circuito.py y base de datos local del RIS
+mirth/salida_prueba/
+mirth/scripts/ris.db

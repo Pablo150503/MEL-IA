@@ -1,6 +1,6 @@
 // MEL-IA service worker
 // Bump this on every deploy that changes cached assets.
-const SW_VERSION = "v6";
+const SW_VERSION = "v7";
 // Same-origin requests wait this long for the network before using the cache.
 const NETWORK_TIMEOUT_MS = 4000;
 const PRECACHE = `melia-precache-${SW_VERSION}`;
@@ -13,29 +13,29 @@ const CURRENT_CACHES = [PRECACHE, RUNTIME_SAME_ORIGIN, RUNTIME_CDN];
 const PRECACHE_URLS = [
   "./",
   "index.html",
-  "styles.css",
-  "script.js",
-  "rest.js",
-  "demo.js",
-  "exportar.js",
-  "pwa.js",
-  "logo.png",
   "manifest.webmanifest",
-  "icons/icon-192.png",
-  "icons/icon-512.png",
-  "icons/icon-512-maskable.png",
-  "icons/apple-touch-icon.png",
-  "icons/favicon-32.png",
-  "icons/favicon.png",
-  "img/casos/caso-1a.jpg",
-  "img/casos/caso-1b.jpg",
-  "img/casos/caso-2.jpg",
-  "img/casos/caso-3.jpg",
-  "img/casos/caso-4.jpg",
-  "img/casos/caso-5.jpg",
-  "animaciones/analisis-piel.json",
-  "animaciones/analisis-ia.json",
-  "pablo.glb",
+  "css/styles.css",
+  "js/script.js",
+  "js/rest.js",
+  "js/demo.js",
+  "js/exportar.js",
+  "js/pwa.js",
+  "assets/logo.png",
+  "assets/pablo.glb",
+  "assets/icons/icon-192.png",
+  "assets/icons/icon-512.png",
+  "assets/icons/icon-512-maskable.png",
+  "assets/icons/apple-touch-icon.png",
+  "assets/icons/favicon-32.png",
+  "assets/icons/favicon.png",
+  "assets/casos/caso-1a.jpg",
+  "assets/casos/caso-1b.jpg",
+  "assets/casos/caso-2.jpg",
+  "assets/casos/caso-3.jpg",
+  "assets/casos/caso-4.jpg",
+  "assets/casos/caso-5.jpg",
+  "assets/animaciones/analisis-piel.json",
+  "assets/animaciones/analisis-ia.json",
 ];
 
 // External libraries used by index.html (plus the Font Awesome font its CSS

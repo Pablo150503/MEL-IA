@@ -53,7 +53,7 @@ function prepararExportacion(categorias) {
   const imagenPrevia = document.querySelector("#vistaPrevia img");
   resultado.listo = Promise.all([
     cargarImagenExportar(imagenPrevia ? imagenPrevia.src : "", MAX_LADO_IMAGEN, "image/jpeg").then(img => { resultado.imagen = img; }),
-    cargarImagenExportar("logo.png", 600, "image/png").then(img => { resultado.logo = img; })
+    cargarImagenExportar("assets/logo.png", 600, "image/png").then(img => { resultado.logo = img; })
   ]).then(() => { resultado.preparado = true; });
 
   resultadoExportar = resultado;

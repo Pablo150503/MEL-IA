@@ -809,103 +809,6 @@ function enviarDiagnostico(){
 
 }
 
-function carga(){
-    cambiarVista("pantallaCarga"); // Mostrar pantalla de carga
-    
-    setTimeout(() => {
-        cambiarVista("resultados"); // Cambiar a resultados después de 5 segundos
-    }, 5000);
-}
-
-function cambiarVista(id) {
-    // Ocultar todas las vistas
-    document.querySelectorAll(".vista").forEach((vista) => {
-        vista.classList.remove("visible");
-        vista.style.display = "none";  
-    });
-  
-    const nuevaVista = document.getElementById(id);
-    if (!nuevaVista) {
-        console.error(`Error: La vista '${id}' no existe.`);
-        return;
-    }
-  
-    // Mostrar la nueva vista
-    nuevaVista.classList.add("visible");
-    nuevaVista.style.display = "block";  
-    vistaActual = id;
-  
-    actualizarHeader();
-    console.log(id)
-}
-
-function cargarImagen(event) {
-    const archivo = event.target.files[0];
-    if (archivo) {
-        const urlImagen = URL.createObjectURL(archivo);
-        agregarImagen(urlImagen, archivo.name);
-    }
-} 
-
-function agregarImagen(url, nombre) {
-    const vistaPrevia = document.getElementById("vistaPrevia");
-    const textoSecundario = vistaPrevia.querySelector(".texto-secundario");
-    const btnIniciarDiagnostico = document.getElementById("btnIniciarDiagnostico");
-  
-    // Si hay texto de "No hay imagen seleccionada", se elimina
-    if (textoSecundario) {
-        textoSecundario.remove();
-    }
-  
-    // Si ya hay una imagen, la reemplazamos
-    let img = vistaPrevia.querySelector("img");
-    if (!img) {
-        img = document.createElement("img");
-        vistaPrevia.appendChild(img);
-    }
-  
-    img.src = url;
-    img.style.display = "block";
-  
-    // Activar el botón de inicio de diagnóstico
-    btnIniciarDiagnostico.removeAttribute("disabled");
-}
-
-function logout() {
-    cambiarVista("credenciales");
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Cambia la vista visible según el id pasado.
  */
@@ -992,31 +895,6 @@ function logout() {
   cambiarVista("credenciales");
 }
 
-/**
- * Función dummy para el seguimiento (a implementar según requisitos).
- */
-function faltaImplementacion() {
-  alert("Función aún no implementada.");
-}
-
-/**
- * Al pulsar “Siguiente” en el formulario, se pasa a la pantalla Sitio Anatómico.
- */
-function irSitioAnatomico() {
-  // Aquí se pueden validar los datos del formulario si es necesario.
-  cambiarVista("sitioAnatomico");
-  
-  // Inicialización del modelo 3D (ejemplo básico)
-  iniciarModelo3D();
-}
-
-/**
- * Función para finalizar el proceso.
- */
-function finalizar() {
-  alert("Proceso completado.");
-  cambiarVista("inicio");
-}
 function iniciarModelo3D() {
     console.log("Iniciando carga del modelo 3D...");
   
@@ -1058,11 +936,11 @@ function iniciarModelo3D() {
     controls.enableZoom = true;
     console.log("Controles de órbita inicializados.");
   
-    // Cargar el modelo 3D exportado a glTF (untilted.glb).
+    // Cargar el modelo 3D del cuerpo exportado a glTF (assets/pablo.glb).
 const loader = new THREE.GLTFLoader();
-    console.log("Cargando modelo 3D desde 'untilted.glb'...");
+    console.log("Cargando modelo 3D desde 'assets/pablo.glb'...");
     loader.load(
-      'pablo.glb',
+      'assets/pablo.glb',
       function (gltf) {
         console.log("Modelo 3D cargado correctamente.");
         const object = gltf.scene;
@@ -1173,8 +1051,8 @@ function detectarClicEnModelo(event, camera, scene) {
       path: ruta
     });
     animacionesCarga = [
-      crear("animacionPiel", "animaciones/analisis-piel.json"),
-      crear("animacionIA", "animaciones/analisis-ia.json")
+      crear("animacionPiel", "assets/animaciones/analisis-piel.json"),
+      crear("animacionIA", "assets/animaciones/analisis-ia.json")
     ];
     return animacionesCarga;
   }

@@ -340,8 +340,8 @@
   // diagnosis).
   // ---------------------------------------------------------------------
   var VERSION_FILES = [
-    "index.html", "script.js", "styles.css", "demo.js", "exportar.js",
-    "pwa.js", "rest.js", "sw.js", "manifest.webmanifest"
+    "index.html", "js/script.js", "css/styles.css", "js/demo.js", "js/exportar.js",
+    "js/pwa.js", "js/rest.js", "sw.js", "manifest.webmanifest"
   ];
   var CHECK_INTERVAL_MS = 3 * 60 * 1000;
   var AUTO_UPDATE_MS = 15 * 60 * 1000;

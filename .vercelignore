@@ -1,0 +1,5 @@
+# Solo se publica la app; el circuito de Mirth y la documentación se quedan en el repositorio
+mirth/
+assets/marca/
+README.md
+.gitignore

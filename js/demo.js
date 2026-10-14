@@ -17,7 +17,7 @@ Los datos se pierden al recargar la página.
 	}
 
 	// "Base de datos" en memoria con las mismas columnas que devuelve servidor.js.
-	// Las imágenes son nevus reales del ISIC Archive (ver img/casos/CREDITOS.txt)
+	// Las imágenes son nevus reales del ISIC Archive (ver assets/casos/CREDITOS.txt)
 	const db = {
 		medicos: [
 			{ id: 1, Nombre: "Javier", Nombre2: "", Apellidos: "Ruiz Molina", DNI: "", Password: "", Especialidad: "Dermatología" }
@@ -29,12 +29,12 @@ Los datos se pierden al recargar la página.
 			{ Id: 4, Nombre: "Miguel", Apellidos: "Torres Vidal", Edad: 27, Sexo: "Masculino", SIP: "40586972", idMedico: 1 }
 		],
 		informes: [
-			{ id: 1, PacientesId: 1, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(90), Imagen: "img/casos/caso-1a.jpg", abierto: "Si" },
-			{ id: 2, PacientesId: 1, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(7), Imagen: "img/casos/caso-1b.jpg", abierto: "Si" },
-			{ id: 3, PacientesId: 1, LesionId: 2, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(200), Imagen: "img/casos/caso-2.jpg", abierto: "No" },
-			{ id: 4, PacientesId: 2, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(3), Imagen: "img/casos/caso-3.jpg", abierto: "Si" },
-			{ id: 5, PacientesId: 3, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(30), Imagen: "img/casos/caso-4.jpg", abierto: "Si" },
-			{ id: 6, PacientesId: 4, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(12), Imagen: "img/casos/caso-5.jpg", abierto: "Si" }
+			{ id: 1, PacientesId: 1, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(90), Imagen: "assets/casos/caso-1a.jpg", abierto: "Si" },
+			{ id: 2, PacientesId: 1, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(7), Imagen: "assets/casos/caso-1b.jpg", abierto: "Si" },
+			{ id: 3, PacientesId: 1, LesionId: 2, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(200), Imagen: "assets/casos/caso-2.jpg", abierto: "No" },
+			{ id: 4, PacientesId: 2, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(3), Imagen: "assets/casos/caso-3.jpg", abierto: "Si" },
+			{ id: 5, PacientesId: 3, LesionId: 1, Diagnostico: "Nevus", DiagnosticoIA: "Nevus", Fecha: haceDias(30), Imagen: "assets/casos/caso-4.jpg", abierto: "Si" },
+			{ id: 6, PacientesId: 4, LesionId: 1, Diagnostico: null, DiagnosticoIA: "Nevus", Fecha: haceDias(12), Imagen: "assets/casos/caso-5.jpg", abierto: "Si" }
 		],
 		notas: [
 			{ id: 1, InformeId: 1, MedicoNota: 1, Nota: "Regular borders and homogeneous color. Follow-up in 3 months.", FechaNota: haceDias(90) },
