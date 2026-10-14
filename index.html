@@ -40,7 +40,7 @@
         <span class="btn-modo-titulo">Real Mode</span>
         <span class="btn-modo-desc">Connects to the MEL-IA server</span>
       </button>
-      <button class="btn-modo btn-modo-demo" onclick="elegirModo('demo')">
+      <button class="btn-modo btn-modo-demo" onclick="abrirSelectorLesion()">
         <i class="fas fa-mobile-alt"></i>
         <span class="btn-modo-titulo">Demo Mode</span>
         <span class="btn-modo-desc">Works offline with sample data</span>
@@ -516,6 +516,36 @@
 </div>
 
 
+
+  <!-- Modo demo: qué lesión "detectará" la IA en los diagnósticos (ver js/script.js) -->
+  <div id="modalLesionDemo" class="modal-lesion-demo" role="dialog" aria-modal="true" aria-labelledby="tituloLesionDemo"
+       onclick="if (event.target === this) cerrarSelectorLesion()">
+    <div class="modal-lesion-contenido">
+      <h3 id="tituloLesionDemo">Demo Mode</h3>
+      <p class="texto-lesion-demo">Which lesion should the AI detect?</p>
+      <div id="opcionesLesion" class="opciones-lesion" role="radiogroup">
+        <button type="button" class="opcion-lesion" role="radio" data-lesion="Nevus" onclick="marcarLesion(this)">
+          <span class="opcion-lesion-nombre">Nevus</span><span class="opcion-lesion-tipo benigna">Benign</span>
+        </button>
+        <button type="button" class="opcion-lesion" role="radio" data-lesion="Melanoma" onclick="marcarLesion(this)">
+          <span class="opcion-lesion-nombre">Melanoma</span><span class="opcion-lesion-tipo maligna">Malignant</span>
+        </button>
+        <button type="button" class="opcion-lesion" role="radio" data-lesion="Basal Cell Carcinoma" onclick="marcarLesion(this)">
+          <span class="opcion-lesion-nombre">Basal Cell Carcinoma</span><span class="opcion-lesion-tipo maligna">Malignant</span>
+        </button>
+        <button type="button" class="opcion-lesion" role="radio" data-lesion="Actinic Keratosis" onclick="marcarLesion(this)">
+          <span class="opcion-lesion-nombre">Actinic Keratosis</span><span class="opcion-lesion-tipo premaligna">Pre-malignant</span>
+        </button>
+        <button type="button" class="opcion-lesion" role="radio" data-lesion="Squamous Cell Carcinoma" onclick="marcarLesion(this)">
+          <span class="opcion-lesion-nombre">Squamous Cell Carcinoma</span><span class="opcion-lesion-tipo maligna">Malignant</span>
+        </button>
+      </div>
+      <div class="modal-lesion-botones">
+        <button type="button" class="btn-lesion-cancelar" onclick="cerrarSelectorLesion()">Cancel</button>
+        <button type="button" class="btn-lesion-empezar" onclick="confirmarLesionDemo()">Start demo</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Previsualización del archivo antes de exportar (ver js/exportar.js) -->
   <div id="modalExportar" class="modal-exportar" role="dialog" aria-modal="true" aria-labelledby="tituloExportar"

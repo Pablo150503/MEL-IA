@@ -2876,3 +2876,131 @@ input, .custom-select {
     background: #137DC5;
     color: #ffffff;
 }
+
+/* --- Modo demo: elegir qué lesión detectará la IA -------------------------- */
+.modal-lesion-demo {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--seguro-arriba) + 16px) 16px calc(var(--seguro-abajo) + 16px);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-lesion-demo.visible {
+    display: flex;
+}
+
+.modal-lesion-contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 20px 16px 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.25s ease;
+}
+
+.modal-lesion-contenido h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #00406a;
+    text-align: center;
+}
+
+.texto-lesion-demo {
+    margin: 0;
+    font-size: 15px;
+    color: #0f5f96;
+    text-align: center;
+}
+
+.opciones-lesion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.opcion-lesion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+    padding: 11px 12px;
+    border: 2px solid #dcebf7;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f5f96;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: left;
+}
+
+/* Círculo tipo "radio" a la izquierda */
+.opcion-lesion::before {
+    content: "";
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #9fb8cc;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.opcion-lesion.elegida {
+    border-color: #137DC5;
+    background: #E3F2FD;
+}
+
+.opcion-lesion.elegida::before {
+    border: 5px solid #137DC5;
+}
+
+.opcion-lesion-nombre {
+    flex: 1;
+}
+
+.opcion-lesion-tipo {
+    flex-shrink: 0;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.opcion-lesion-tipo.benigna { background: #e3f5ea; color: #2e7d32; }
+.opcion-lesion-tipo.maligna { background: #fde7e9; color: #c62828; }
+.opcion-lesion-tipo.premaligna { background: #fff4e0; color: #b26a00; }
+
+.modal-lesion-botones {
+    display: flex;
+    gap: 10px;
+}
+
+.modal-lesion-botones button {
+    flex: 1;
+    margin: 0;
+    height: 46px;
+    padding: 0 12px;
+    border-radius: 25px;
+    font-size: 16px;
+}
+
+.btn-lesion-cancelar {
+    background: #ffffff;
+    color: #137DC5;
+    border: 2px solid #137DC5;
+}
+
+.btn-lesion-empezar {
+    background: #137DC5;
+    color: #ffffff;
+}

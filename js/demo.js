@@ -205,34 +205,43 @@ Los datos se pierden al recargar la página.
 			PacientesId: paciente.Id,
 			LesionId: lesionId,
 			Diagnostico: null,
-			DiagnosticoIA: "Nevus",
+			DiagnosticoIA: lesionDemo,
 			Fecha: new Date().toISOString(),
 			Imagen: imagen,
 			abierto: "Si"
 		});
 	}
 
+	// Las cinco lesiones que clasifica la IA. En la demo se elige cuál "detecta" al entrar
+	// en el modo demo (ver abrirSelectorLesion en script.js)
+	const LESIONES_DEMO = ["Nevus", "Melanoma", "Basal Cell Carcinoma", "Actinic Keratosis", "Squamous Cell Carcinoma"];
+	// El color va por posición: el resultado principal siempre en el azul más intenso
+	const COLORES_POR_POSICION = ["#137DC5", "#2199ea", "#0f5f96", "#50aeee", "#9fb8cc"];
+	let lesionDemo = "Nevus";
+
+	function demoElegirLesion(nombre) {
+		if (LESIONES_DEMO.includes(nombre)) lesionDemo = nombre;
+	}
+
 	/**
-	 * Probabilidades del resultado en modo demo: Nevus siempre es la clase más probable,
-	 * con valores que varían un poco en cada diagnóstico.
+	 * Probabilidades del resultado en modo demo: la lesión elegida es siempre la más
+	 * probable (84,0-94,9 %) y el resto se reparte entre las otras cuatro, con valores
+	 * que varían un poco en cada diagnóstico.
 	 */
 	function demoCategorias() {
 		// Se trabaja en décimas para que los cinco valores sumen exactamente 100,0 %
-		const nevus = 840 + Math.floor(Math.random() * 110); // 84,0-94,9 %
-		let resto = 1000 - nevus;
-		const melanoma = Math.round(resto * (0.4 + Math.random() * 0.2));
-		resto -= melanoma;
-		const basal = Math.round(resto * (0.4 + Math.random() * 0.15));
-		resto -= basal;
-		const queratosis = Math.round(resto * (0.55 + Math.random() * 0.15));
-		const escamosas = resto - queratosis;
-		return [
-			{ name: "Nevus", percentage: nevus / 10, color: "#137DC5" },
-			{ name: "Melanoma", percentage: melanoma / 10, color: "#2199ea" },
-			{ name: "Basal Cell Carcinoma", percentage: basal / 10, color: "#0f5f96" },
-			{ name: "Actinic Keratosis", percentage: queratosis / 10, color: "#50aeee" },
-			{ name: "Squamous Cell Carcinoma", percentage: escamosas / 10, color: "#9fb8cc" }
-		];
+		const principal = 840 + Math.floor(Math.random() * 110);
+		let resto = 1000 - principal;
+		const segunda = Math.round(resto * (0.4 + Math.random() * 0.2));
+		resto -= segunda;
+		const tercera = Math.round(resto * (0.4 + Math.random() * 0.15));
+		resto -= tercera;
+		const cuarta = Math.round(resto * (0.55 + Math.random() * 0.15));
+		const quinta = resto - cuarta;
+		const valores = [principal, segunda, tercera, cuarta, quinta];
+
+		const nombres = [lesionDemo, ...LESIONES_DEMO.filter(nombre => nombre !== lesionDemo)];
+		return nombres.map((name, i) => ({ name, percentage: valores[i] / 10, color: COLORES_POR_POSICION[i] }));
 	}
 
 	// Sustituye la librería REST: modo demo -> datos simulados, modo real -> servidor
@@ -247,4 +256,6 @@ Los datos se pierden al recargar la página.
 	window.rest = rest;
 	window.demoGuardarInforme = demoGuardarInforme;
 	window.demoCategorias = demoCategorias;
+	window.demoElegirLesion = demoElegirLesion;
+	window.demoLesion = () => lesionDemo;
 })();

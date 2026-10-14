@@ -21,6 +21,40 @@ function elegirModo(modo) {
   cambiarVista("credenciales");
 }
 
+/**
+ * Modo demo: antes de entrar se elige qué lesión "detectará" la IA en los diagnósticos
+ * (ver demoCategorias en demo.js). Se recuerda la última elección en este móvil.
+ */
+const CLAVE_LESION_DEMO = "melia_lesion_demo";
+
+function abrirSelectorLesion() {
+  let ultima = "Nevus";
+  try { ultima = localStorage.getItem(CLAVE_LESION_DEMO) || ultima; } catch (e) {}
+  marcarLesion(document.querySelector(`.opcion-lesion[data-lesion="${ultima}"]`) || document.querySelector(".opcion-lesion"));
+  document.getElementById("modalLesionDemo").classList.add("visible");
+}
+
+function marcarLesion(boton) {
+  document.querySelectorAll(".opcion-lesion").forEach(opcion => {
+    const elegida = opcion === boton;
+    opcion.classList.toggle("elegida", elegida);
+    opcion.setAttribute("aria-checked", elegida);
+  });
+}
+
+function cerrarSelectorLesion() {
+  document.getElementById("modalLesionDemo").classList.remove("visible");
+}
+
+function confirmarLesionDemo() {
+  const elegida = document.querySelector(".opcion-lesion.elegida");
+  const lesion = elegida ? elegida.dataset.lesion : "Nevus";
+  demoElegirLesion(lesion);
+  try { localStorage.setItem(CLAVE_LESION_DEMO, lesion); } catch (e) {}
+  cerrarSelectorLesion();
+  elegirModo("demo");
+}
+
 function login() {
   var usuario = document.getElementById("dni").value;
   var contrasenya = document.getElementById("password").value;
@@ -1138,7 +1172,7 @@ function detectarClicEnModelo(event, camera, scene) {
     // Mostrar la vista "resultados"
     cambiarVista("resultados");
 
-    // Tus categorías de diagnóstico (en modo demo el resultado siempre es Nevus)
+    // Tus categorías de diagnóstico (en modo demo, la lesión elegida al entrar es la principal)
     const categories = modoDemo ? demoCategorias() : [
       { name: "Melanocytic Nevus", percentage: 75.3, color: "#137DC5" },
       { name: "Melanoma", percentage: 14.8, color: "#2199ea" },
