@@ -14,5 +14,18 @@
         { "key": "Cache-Control", "value": "no-cache" }
       ]
     }
+  ],
+  "redirects": [
+    { "source": "/script.js", "destination": "/js/script.js", "permanent": false },
+    { "source": "/demo.js", "destination": "/js/demo.js", "permanent": false },
+    { "source": "/exportar.js", "destination": "/js/exportar.js", "permanent": false },
+    { "source": "/pwa.js", "destination": "/js/pwa.js", "permanent": false },
+    { "source": "/rest.js", "destination": "/js/rest.js", "permanent": false },
+    { "source": "/styles.css", "destination": "/css/styles.css", "permanent": false },
+    { "source": "/logo.png", "destination": "/assets/logo.png", "permanent": false },
+    { "source": "/pablo.glb", "destination": "/assets/pablo.glb", "permanent": false },
+    { "source": "/icons/:archivo", "destination": "/assets/icons/:archivo", "permanent": false },
+    { "source": "/img/casos/:archivo", "destination": "/assets/casos/:archivo", "permanent": false },
+    { "source": "/animaciones/:archivo", "destination": "/assets/animaciones/:archivo", "permanent": false }
   ]
 }

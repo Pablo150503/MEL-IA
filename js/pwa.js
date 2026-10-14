@@ -352,9 +352,13 @@
   var updateDeadline = null;
 
   // FNV-1a hash of the files' contents (works without a secure context).
+  // A file that no longer exists on the server (404, e.g. because a new
+  // version moved it) counts as a change instead of aborting the check;
+  // otherwise moving files would hide the update from older versions.
   function fingerprint(fetchOptions) {
     return Promise.all(VERSION_FILES.map(function (file) {
       return fetch(file, fetchOptions).then(function (response) {
+        if (response.status === 404) return "missing:" + file;
         if (!response.ok) throw new Error(file + " " + response.status);
         return response.text();
       });
