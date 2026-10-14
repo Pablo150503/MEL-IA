@@ -1996,8 +1996,10 @@ textarea {
     --hueco: clamp(8px, 1.8vh, 20px);
     --relleno-campo: clamp(9px, 1.6vh, 14px);
     --ancho-contenido: 360px;
-    /* Espacio bajo el último botón: 28px, o más en iPhone con barra de inicio */
-    --espacio-inferior: max(28px, calc(var(--seguro-abajo) + 14px));
+    /* Espacio bajo el botón "Go back": crece con el alto del móvil (≈ 33px en
+       los más bajos, 40px en uno normal, 50-56px en los altos) y en iPhone con
+       barra de inicio queda siempre al menos 24px por encima de ella */
+    --espacio-inferior: max(clamp(32px, 6vh, 56px), calc(var(--seguro-abajo) + 24px));
 }
 
 html, body {
