@@ -976,6 +976,25 @@ const loader = new THREE.GLTFLoader();
     }
 }
   
+// Las partes del modelo 3D (assets/pablo.glb) tienen el nombre en español. Se muestran en
+// inglés con la nomenclatura de localización anatómica de las bases de datos ISIC
+// (la misma que usa el dataset de la IA). Three.js quita la "/" de "MANOS/PIES".
+const PARTES_MODELO_3D = {
+  CUERPO: "Body",
+  CABEZA: "Head/Neck",
+  BRAZOS: "Upper Extremity",
+  PIERNAS: "Lower Extremity",
+  MANOSPIES: "Palms/Soles",
+  GENITAL: "Oral/Genital",
+  ANTERIOR: "Anterior Torso",
+  POSTERIOR: "Posterior Torso"
+};
+
+function nombreParteModelo(nombre) {
+  const clave = String(nombre || "").toUpperCase().replace(/[^A-Z]/g, "");
+  return PARTES_MODELO_3D[clave] || nombre || "Unknown";
+}
+
 function detectarClicEnModelo(event, camera, scene) {
     console.log("Detectando clic...");
     const mouse = new THREE.Vector2();
@@ -999,8 +1018,8 @@ function detectarClicEnModelo(event, camera, scene) {
         }
         clickedObject.material.color.set(0x0d4f7c);
         window.selectedPart = clickedObject;
-        const selectedName = clickedObject.name || (clickedObject.parent ? clickedObject.parent.name : "Desconocido");
-        document.getElementById("textoSitio").textContent = selectedName;
+        const selectedName = clickedObject.name || (clickedObject.parent ? clickedObject.parent.name : "");
+        document.getElementById("textoSitio").textContent = nombreParteModelo(selectedName);
         console.log("Parte seleccionada:", selectedName);
       } else {
         console.log("No es una parte clickeable");
