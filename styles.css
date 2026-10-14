@@ -1796,90 +1796,26 @@ textarea {
     display: none;
 }
 
-/* Pantalla de carga: escaneo animado sobre la foto de la lesión */
-.carga-imagen {
+/* Pantalla de carga: dos animaciones Lottie que se relevan con un fundido
+   (1: análisis de la imagen de la piel, 2: la IA generando el diagnóstico).
+   El tamaño se adapta al alto del móvil para que la pantalla no haga scroll. */
+.carga-animacion {
     position: relative;
-    width: min(230px, 60vw);
-    aspect-ratio: 1;
-    border-radius: 22px;
-    overflow: hidden;
-    background: #0f5f96;
-    box-shadow: 0 10px 30px rgba(19, 125, 197, 0.35);
+    flex-shrink: 0;
+    width: clamp(180px, min(84vw, (100vh - 290px) * 1.333), 340px);
+    width: clamp(180px, min(84vw, (100dvh - 290px) * 1.333), 340px);
+    aspect-ratio: 4 / 3;
 }
 
-.carga-imagen img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    animation: respirar 2.4s ease-in-out infinite;
-}
-
-/* Rejilla tenue + línea de escaneo que recorre la imagen */
-.carga-rejilla {
+.animacion-lottie {
     position: absolute;
     inset: 0;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-    background-size: 23px 23px;
+    opacity: 0;
+    transition: opacity 0.45s ease;
 }
 
-.carga-imagen::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: -35%;
-    height: 35%;
-    background: linear-gradient(to bottom, rgba(80, 174, 238, 0), rgba(80, 174, 238, 0.55) 85%, rgba(255, 255, 255, 0.95) 100%);
-    animation: escanear 1.7s ease-in-out infinite;
-}
-
-/* Círculo de enfoque que late sobre la lesión */
-.carga-foco {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 46%;
-    aspect-ratio: 1;
-    border: 2px solid rgba(255, 255, 255, 0.9);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: latir 1.4s ease-in-out infinite;
-}
-
-.carga-esquina {
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    border: 3px solid #ffffff;
-    animation: parpadear 1.4s ease-in-out infinite;
-}
-
-.carga-esquina.sup-izq { top: 12px; left: 12px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
-.carga-esquina.sup-der { top: 12px; right: 12px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
-.carga-esquina.inf-izq { bottom: 12px; left: 12px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
-.carga-esquina.inf-der { bottom: 12px; right: 12px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
-
-@keyframes escanear {
-    0% { top: -35%; }
-    100% { top: 100%; }
-}
-
-@keyframes latir {
-    0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
-    50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
-}
-
-@keyframes parpadear {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
-}
-
-@keyframes respirar {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.04); }
+.animacion-lottie.activa {
+    opacity: 1;
 }
 
 .pasos-carga {
@@ -2044,11 +1980,12 @@ textarea {
 }
 
 /* ==========================================================================
-   MAQUETACIÓN ADAPTABLE A TODOS LOS MÓVILES
-   Sustituye los márgenes y posiciones fijas de arriba (pensados para un solo
-   tamaño de pantalla) por un sistema común: cada pantalla es una columna que
-   ocupa al menos el alto visible, los espacios se adaptan a la altura del
-   móvil y se respetan el notch y la barra de inicio del iPhone.
+   MAQUETACIÓN ADAPTABLE A TODOS LOS MÓVILES, SIN SCROLL
+   Cada pantalla mide exactamente el alto visible del móvil y no se desplaza:
+   los espacios se adaptan a la altura y el sitio que sobra se reparte entre
+   los elementos elásticos (modelo 3D, fotos y listas). Solo el interior de
+   una lista se desplazaría si tuviera más elementos de los que caben (por
+   ejemplo, muchos pacientes). Se respetan el notch y la barra del iPhone.
    ========================================================================== */
 
 :root {
@@ -2056,23 +1993,26 @@ textarea {
     --seguro-arriba: env(safe-area-inset-top, 0px);
     --seguro-abajo: env(safe-area-inset-bottom, 0px);
     --margen-lateral: 16px;
-    --hueco: clamp(12px, 2.2vh, 22px);
+    --hueco: clamp(8px, 1.8vh, 20px);
+    --relleno-campo: clamp(9px, 1.6vh, 14px);
     --ancho-contenido: 360px;
 }
 
 html, body {
     display: block;
-    height: auto;
-    min-height: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* --- Base de todas las pantallas ----------------------------------------- */
 .vista {
     width: 100%;
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding: calc(var(--seguro-arriba) + 20px) var(--margen-lateral) calc(var(--seguro-abajo) + 20px);
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto; /* solo red de seguridad para pantallas fuera de lo común */
+    padding: calc(var(--seguro-arriba) + 16px) var(--margen-lateral) calc(var(--seguro-abajo) + 16px);
 }
 
 .vista.visible {
@@ -2084,7 +2024,12 @@ html, body {
 /* Pantallas con cabecera fija: el contenido empieza debajo de ella */
 #inicio, #pantallaSIP, #formulario, #sitioAnatomico, #seleccionImagen, #resultados,
 #sAnatomico, #seguimiento, #detallePaciente, #pantallaInforme, #evolucionLesion {
-    padding-top: calc(var(--seguro-arriba) + var(--alto-header) + 14px);
+    padding-top: calc(var(--seguro-arriba) + var(--alto-header) + 12px);
+}
+
+/* Campos de texto y selects: más compactos en móviles bajos */
+input, .custom-select {
+    padding: var(--relleno-campo) 14px;
 }
 
 /* --- Cabecera fija: logo a la izquierda, médico a la derecha -------------- */
@@ -2129,11 +2074,11 @@ html, body {
 }
 
 .titulo2, .titulo3 {
-    font-size: clamp(22px, 6.2vw, 28px);
+    font-size: clamp(20px, 5.8vw, 28px);
 }
 
 .titulo-anatomico {
-    font-size: clamp(18px, 5.2vw, 24px);
+    font-size: clamp(17px, 5vw, 24px);
 }
 
 /* --- Botones ---------------------------------------------------------------- */
@@ -2146,7 +2091,7 @@ html, body {
     width: 100%;
     max-width: 240px;
     margin: auto auto 0;
-    padding: 13px 20px;
+    padding: clamp(10px, 1.6vh, 13px) 20px;
 }
 
 .btn-siguiente, .btn-iniciar {
@@ -2155,13 +2100,14 @@ html, body {
     width: 100%;
     max-width: 260px;
     margin: 0 auto;
+    padding: clamp(10px, 1.6vh, 14px);
 }
 
 /* --- 0. Selección de modo ----------------------------------------------- */
 .contenedor-modo {
     flex: 1;
     min-height: 0;
-    gap: clamp(16px, 3.4vh, 28px);
+    gap: clamp(14px, 3.2vh, 28px);
 }
 
 .logo-modo {
@@ -2169,13 +2115,12 @@ html, body {
 }
 
 .btn-modo {
-    padding: clamp(14px, 2.6vh, 22px) 16px;
+    padding: clamp(12px, 2.4vh, 22px) 16px;
 }
 
 /* --- 1. Login ------------------------------------------------------------- */
 #credenciales {
     max-width: none;
-    height: auto;
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -2198,7 +2143,7 @@ html, body {
 }
 
 #credenciales .texto-pequeño {
-    margin-top: clamp(14px, 3vh, 28px);
+    margin-top: clamp(12px, 3vh, 28px);
 }
 
 #credenciales .texto-cambiar-modo {
@@ -2207,10 +2152,9 @@ html, body {
 
 /* --- 2. Registro ---------------------------------------------------------- */
 #registro {
-    height: auto;
     align-items: center;
     justify-content: center;
-    padding-top: calc(var(--seguro-arriba) + 20px);
+    padding-top: calc(var(--seguro-arriba) + 16px);
 }
 
 .contenedor-header {
@@ -2218,8 +2162,8 @@ html, body {
 }
 
 #registro .logo {
-    width: clamp(150px, 45vw, 190px);
-    margin: 0 0 6px;
+    width: clamp(140px, 42vw, 190px);
+    margin: 0 0 4px;
 }
 
 #registro .titulo {
@@ -2233,7 +2177,11 @@ html, body {
 
 #registroForm input,
 #registroForm .select-container {
-    margin: clamp(4px, 0.9vh, 7px) 0;
+    margin: clamp(3px, 0.8vh, 7px) 0;
+}
+
+#registroForm button {
+    margin-top: clamp(8px, 1.6vh, 20px);
 }
 
 /* --- 3. Inicio ------------------------------------------------------------ */
@@ -2245,7 +2193,7 @@ html, body {
 #inicio .icon-container {
     flex: 1;
     height: auto;
-    gap: clamp(28px, 6vh, 56px);
+    gap: clamp(24px, 6vh, 56px);
 }
 
 #inicio .icon-btn {
@@ -2258,7 +2206,6 @@ html, body {
 
 /* --- 4. ¿SIP? ------------------------------------------------------------- */
 #pantallaSIP {
-    height: auto;
     justify-content: flex-start;
     align-items: stretch;
 }
@@ -2279,7 +2226,7 @@ html, body {
     width: 100%;
     max-width: var(--ancho-contenido);
     margin: 0 auto;
-    gap: clamp(8px, 1.6vh, 14px);
+    gap: clamp(7px, 1.5vh, 14px);
     align-items: center;
 }
 
@@ -2290,15 +2237,20 @@ html, body {
 
 #formulario form button {
     width: 100%;
-    margin-top: 6px;
+    margin-top: 4px;
 }
 
-/* --- 6. Sitio anatómico (modelo 3D) --------------------------------------- */
+/* --- 6. Sitio anatómico: el modelo 3D ocupa el espacio libre --------------- */
 #canvas3D {
-    flex-shrink: 0;
+    flex: 1 1 auto;
+    min-height: 150px;
     width: 100%;
-    height: clamp(220px, 44vh, 520px);
+    height: auto;
     margin: 0;
+}
+
+#canvas3D canvas {
+    display: block;
 }
 
 #sitioSeleccionado {
@@ -2311,76 +2263,109 @@ html, body {
 /* --- 7. Selección de imagen ----------------------------------------------- */
 .contenedor-seleccion {
     flex: 1;
+    min-height: 0;
     height: auto;
     padding-top: 0;
     justify-content: center;
     gap: var(--hueco);
 }
 
+/* Cámara y galería en una sola fila */
 .botones-seleccion {
-    margin-bottom: 0;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
     gap: 10px;
 }
 
 .botones-seleccion .btn-seleccion {
+    flex: 1 1 0;
+    width: auto;
+    max-width: 170px;
     margin: 0;
+    padding: 12px 10px;
+    font-size: 15px;
 }
 
+/* La vista previa es cuadrada y se ajusta al alto que queda libre */
 .vista-previa {
-    width: clamp(160px, min(68vw, 34vh), 300px);
-    height: auto;
-    aspect-ratio: 1;
+    flex-shrink: 0;
+    width: clamp(120px, min(70vw, 100vh - 330px), 300px);
+    width: clamp(120px, min(70vw, 100dvh - 330px), 300px);
+    height: clamp(120px, min(70vw, 100vh - 330px), 300px);
+    height: clamp(120px, min(70vw, 100dvh - 330px), 300px);
     margin: 0;
 }
 
 /* --- 8. Resultados --------------------------------------------------------- */
 #resultados {
     gap: 0;
+    overflow: hidden;
 }
 
-/* --- 9. Seguimiento de pacientes ------------------------------------------ */
+/* --- 9. Seguimiento: la lista de pacientes ocupa el espacio libre ---------- */
 #seguimiento {
-    height: auto;
-    overflow: visible;
+    overflow: hidden;
     align-items: center;
 }
 
 #buscadorPacientes {
+    flex-shrink: 0;
     width: 100%;
     max-width: 420px;
     margin: 0;
 }
 
 #listaPacientes {
-    flex-grow: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     width: 100%;
     max-width: 420px;
     margin: 0;
-    gap: 12px;
+    gap: 8px;
 }
 
 .paciente-card {
+    flex-shrink: 0;
     max-width: none;
-    padding: 12px 14px;
+    padding: 8px 12px;
     gap: 10px;
 }
 
 .paciente-nombre {
-    font-size: 16px;
+    font-size: 15px;
+    margin-bottom: 1px;
 }
 
 .paciente-sip {
+    font-size: 13px;
+}
+
+.botones-paciente .btn-seguimiento {
+    padding: 8px 10px;
     font-size: 14px;
 }
 
-/* --- 10. Ficha del paciente y lesiones ------------------------------------- */
+.botones-paciente .btn-eliminar {
+    padding: 8px 10px;
+}
+
+/* --- 10. Ficha del paciente: la lista de lesiones ocupa el espacio libre --- */
+#detallePaciente {
+    overflow: hidden;
+}
+
 .paciente-info-container {
+    flex-shrink: 0;
     margin: 0;
     padding: 0;
 }
 
 .paciente-info-container h3 {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    font-size: 17px;
 }
 
 .paciente-info-row {
@@ -2392,23 +2377,58 @@ html, body {
 .info-block {
     min-width: 0;
     overflow-wrap: anywhere;
-    font-size: 15px;
+    font-size: 14px;
+}
+
+.info-block strong {
+    margin-bottom: 2px;
+}
+
+#detallePaciente .titulo3 {
+    flex-shrink: 0;
+    font-size: clamp(18px, 5vw, 22px);
 }
 
 #listaLesiones {
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     padding: 0;
 }
 
 #tituloActivos, #tituloCerrados {
-    padding: 6px 0;
+    padding: 4px 0;
+}
+
+#tituloActivos h3, #tituloCerrados h3 {
+    font-size: 17px;
 }
 
 #containerActivos, #containerCerrados {
     max-height: none;
     overflow: visible;
-    margin: 10px 0 18px;
+    margin: 8px 0 12px;
     padding: 0;
+}
+
+/* Tarjeta de lesión en una sola fila: nombre a la izquierda, botones a la derecha */
+.lesion-card {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+}
+
+.lesion-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+}
+
+.botones-lesion button {
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 13px;
 }
 
 /* Ventana de informes de una lesión */
@@ -2441,9 +2461,14 @@ html, body {
     width: calc(100% - 40px);
 }
 
-/* --- 11. Informe médico ---------------------------------------------------- */
+/* --- 11. Informe médico: la lista de notas ocupa el espacio libre ---------- */
+#pantallaInforme {
+    overflow: hidden;
+}
+
 #pantallaInforme main {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: var(--hueco);
@@ -2453,26 +2478,185 @@ html, body {
     padding-bottom: 0;
 }
 
+.informe-contenido {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .imagen-container {
-    margin-bottom: 0;
+    margin: 0;
+}
+
+.imagen-informe {
+    width: 100%;
+    max-width: none;
+    height: clamp(100px, 24vh, 300px);
+    object-fit: cover;
+}
+
+/* Datos en dos columnas (el paciente ocupa la fila entera) */
+.datos-informe {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px 12px;
+}
+
+.datos-informe p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.datos-informe p:first-child {
+    grid-column: 1 / -1;
+}
+
+#btnDiagnosticar {
+    flex-shrink: 0;
+    margin: 0 auto;
+    padding: 9px 16px;
+    font-size: 15px;
 }
 
 .notas-informe {
-    margin-top: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+.notas-informe h3 {
+    flex-shrink: 0;
+    margin-bottom: 6px;
+    font-size: 16px;
+}
+
+#listaNotas {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-bottom: 8px;
+}
+
+.nota-item {
+    padding: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+/* Nueva nota: caja de texto con el botón de enviar al lado */
+.nota-nueva {
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+}
+
+.nota-nueva textarea {
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+    resize: none;
+}
+
+.nota-nueva .btn-guardar-nota {
+    flex-shrink: 0;
+    width: 48px;
+    margin: 0;
+    padding: 0;
+    border-radius: 12px;
+    font-size: 18px;
 }
 
 #pantallaInforme .btn-volver {
-    margin-top: 8px;
+    margin: 0 auto;
 }
 
-/* --- 12. Evolución de la lesión -------------------------------------------- */
+/* --- 12. Evolución: las fotos se reparten el alto disponible --------------- */
+#evolucionLesion {
+    overflow: hidden;
+}
+
 .contenedor-imagenes {
-    max-height: none;
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
     width: 100%;
     max-width: 440px;
     margin: 0 auto;
     padding: 0;
+}
+
+.imagen-evolucion {
+    flex: 1 1 0;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+}
+
+.imagen-evolucion p {
+    flex-shrink: 0;
+    margin: 0 0 4px;
+}
+
+.contenedor-imagenes img {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    object-fit: cover;
+    padding: 3px;
+}
+
+/* --- Móviles de altura media o baja: en el informe, foto y datos lado a lado
+       para dejar sitio a las notas ------------------------------------------ */
+@media (max-height: 700px) {
+    .informe-contenido {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .imagen-container {
+        flex: 0 0 auto;
+        width: clamp(100px, 38%, 160px);
+    }
+
+    .imagen-informe {
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    .datos-informe {
+        flex: 1;
+        min-width: 0;
+        grid-template-columns: 1fr;
+    }
+
+    .nota-item {
+        padding: 6px 8px;
+    }
+}
+
+/* --- Móviles bajos (Safari con barras, iPhone SE...) ----------------------- */
+@media (max-height: 620px) {
+    :root {
+        --alto-header: 50px;
+    }
+
+    .header-sip .logo-pequeno {
+        width: 84px;
+    }
+
+    .paciente-info-container h3 {
+        display: none; /* "Patient's Data": los datos ya se entienden solos */
+    }
 }
 
 /* --- Pantallas muy estrechas (320-359px) ------------------------------------ */
@@ -2483,10 +2667,15 @@ html, body {
 
     .paciente-info-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        row-gap: 12px;
+        row-gap: 6px;
     }
 
     .header-sip .user-info {
         font-size: 12px;
+    }
+
+    .botones-seleccion .btn-seleccion {
+        font-size: 14px;
+        padding: 11px 8px;
     }
 }

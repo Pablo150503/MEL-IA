@@ -1,0 +1,10 @@
+Animaciones Lottie de la pantalla de carga del diagnóstico.
+
+analisis-piel.json  "Dermatology" de RBR Digital
+                    https://lottiefiles.com/free-animation/dermatology-oMe7R3zrEs
+analisis-ia.json    "Artificial intelligence digital technology" de Abdul Latif
+                    https://lottiefiles.com/free-animation/artificial-intelligence-digital-technology-qysxvjzSuE
+
+Licencia: Lottie Simple License (LottieFiles): uso gratuito, también comercial, sin
+obligación de atribución. Se han convertido de .lottie a JSON con las imágenes incrustadas
+para reproducirlas con lottie-web.

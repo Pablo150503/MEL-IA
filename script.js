@@ -1142,7 +1142,7 @@ function detectarClicEnModelo(event, camera, scene) {
     if (modoDemo) {
       demoGuardarInforme(imagen ? imagen.src : "");
     }
-    mostrarCarga(imagen ? imagen.src : "", generarCirculos);
+    mostrarCarga(generarCirculos);
   }
 
   const PASOS_CARGA = [
@@ -1151,13 +1151,54 @@ function detectarClicEnModelo(event, camera, scene) {
     "Running the AI model",
     "Generating the report"
   ];
-  const DURACION_PASO_CARGA = 1100; // ms por paso
+  const DURACION_PASO_CARGA = 1400; // ms por paso
+
+  // Fase 1 (pasos 1-2): análisis de la imagen de la piel. Fase 2 (pasos 3-4): la IA.
+  const FASES_CARGA = [
+    { animacion: 0, texto: "Analyzing the lesion image..." },
+    { animacion: 1, texto: "The AI is generating the diagnosis..." }
+  ];
+  let animacionesCarga = null;
 
   /**
-   * Pantalla de carga animada: escaneo sobre la foto, pasos del análisis y barra de progreso.
+   * Crea (una sola vez) las dos animaciones Lottie de la pantalla de carga.
    */
-  function mostrarCarga(imagen, alTerminar) {
-    document.getElementById("cargaImagen").src = imagen;
+  function prepararAnimacionesCarga() {
+    if (animacionesCarga || typeof lottie === "undefined") return animacionesCarga;
+    const crear = (id, ruta) => lottie.loadAnimation({
+      container: document.getElementById(id),
+      renderer: "svg",
+      loop: true,
+      autoplay: false,
+      path: ruta
+    });
+    animacionesCarga = [
+      crear("animacionPiel", "animaciones/analisis-piel.json"),
+      crear("animacionIA", "animaciones/analisis-ia.json")
+    ];
+    return animacionesCarga;
+  }
+  window.addEventListener("load", prepararAnimacionesCarga); // se precargan al abrir la app
+
+  function mostrarFaseCarga(indice) {
+    const fase = FASES_CARGA[indice];
+    document.getElementById("textoCarga").textContent = fase.texto;
+    ["animacionPiel", "animacionIA"].forEach((id, i) => {
+      document.getElementById(id).classList.toggle("activa", i === fase.animacion);
+    });
+    const animaciones = prepararAnimacionesCarga();
+    if (animaciones) {
+      animaciones.forEach((animacion, i) => {
+        if (i === fase.animacion) animacion.goToAndPlay(0, true);
+        else animacion.pause();
+      });
+    }
+  }
+
+  /**
+   * Pantalla de carga: dos animaciones Lottie, pasos del análisis y barra de progreso.
+   */
+  function mostrarCarga(alTerminar) {
     const lista = document.getElementById("pasosCarga");
     const barra = document.getElementById("barraCarga");
     const porcentaje = document.getElementById("porcentajeCarga");
@@ -1166,10 +1207,16 @@ function detectarClicEnModelo(event, camera, scene) {
 
     const duracion = PASOS_CARGA.length * DURACION_PASO_CARGA;
     const inicio = performance.now();
+    let faseActual = -1;
 
     function pintar(ahora) {
       const progreso = Math.min((ahora - inicio) / duracion, 1);
       const pasoActual = Math.min(Math.floor(progreso * PASOS_CARGA.length), PASOS_CARGA.length);
+      const fase = pasoActual < 2 ? 0 : 1;
+      if (fase !== faseActual) {
+        faseActual = fase;
+        mostrarFaseCarga(fase);
+      }
       [...lista.children].forEach((li, i) => {
         const hecho = i < pasoActual || progreso === 1;
         li.className = hecho ? "hecho" : (i === pasoActual ? "activo" : "");
@@ -1181,7 +1228,10 @@ function detectarClicEnModelo(event, camera, scene) {
       if (progreso < 1) {
         requestAnimationFrame(pintar);
       } else {
-        setTimeout(alTerminar, 400);
+        setTimeout(() => {
+          (animacionesCarga || []).forEach(animacion => animacion.pause()); // no gastar batería en segundo plano
+          alTerminar();
+        }, 400);
       }
     }
     requestAnimationFrame(pintar);

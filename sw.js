@@ -1,6 +1,6 @@
 // MEL-IA service worker
 // Bump this on every deploy that changes cached assets.
-const SW_VERSION = "v4";
+const SW_VERSION = "v6";
 // Same-origin requests wait this long for the network before using the cache.
 const NETWORK_TIMEOUT_MS = 4000;
 const PRECACHE = `melia-precache-${SW_VERSION}`;
@@ -33,6 +33,8 @@ const PRECACHE_URLS = [
   "img/casos/caso-3.jpg",
   "img/casos/caso-4.jpg",
   "img/casos/caso-5.jpg",
+  "animaciones/analisis-piel.json",
+  "animaciones/analisis-ia.json",
   "pablo.glb",
 ];
 
@@ -46,6 +48,7 @@ const CDN_PRECACHE_URLS = [
   "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js",
   "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js",
 ];
 
 const CDN_HOSTS = ["cdnjs.cloudflare.com", "cdn.jsdelivr.net"];
@@ -107,7 +110,9 @@ function isCdnRequest(url) {
 
 async function networkFirstNavigation(request) {
   try {
-    const response = await fetch(request);
+    // Revalidate the page with the server too, so an update is never served
+    // from the browser's HTTP cache.
+    const response = await fetch(request, { cache: "no-cache" });
     if (response && response.ok) {
       const cache = await caches.open(RUNTIME_SAME_ORIGIN);
       cache.put("index.html", response.clone());

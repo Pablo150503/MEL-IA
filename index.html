@@ -13,6 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
 
   <!-- PWA: installable home-screen app support -->
   <link rel="manifest" href="manifest.webmanifest">
@@ -300,17 +301,13 @@
 <!-- PANTALLA DE CARGA -->
 <div id="pantallaCarga" class="vista">
   <div class="contenedor-carga">
-      <!-- Animación de análisis sobre la foto de la lesión -->
-      <div class="carga-imagen">
-          <img id="cargaImagen" src="" alt="Lesion image">
-          <span class="carga-rejilla"></span>
-          <span class="carga-foco"></span>
-          <span class="carga-esquina sup-izq"></span>
-          <span class="carga-esquina sup-der"></span>
-          <span class="carga-esquina inf-izq"></span>
-          <span class="carga-esquina inf-der"></span>
+      <!-- Dos animaciones Lottie: 1) análisis de la imagen de la piel, 2) la IA
+           generando el diagnóstico (ver animaciones/CREDITOS.txt) -->
+      <div class="carga-animacion">
+          <div id="animacionPiel" class="animacion-lottie"></div>
+          <div id="animacionIA" class="animacion-lottie"></div>
       </div>
-      <p class="texto-carga">Analyzing image and generating diagnosis...</p>
+      <p id="textoCarga" class="texto-carga">Analyzing the lesion image...</p>
       <ul id="pasosCarga" class="pasos-carga"></ul>
       <div class="barra-carga"><div id="barraCarga"></div></div>
       <p id="porcentajeCarga" class="porcentaje-carga">0%</p>
@@ -483,8 +480,10 @@
         <h3>Report Notes</h3>
         <ul id="listaNotas" class="lista-notas"></ul>
     
-        <textarea id="notaInforme" placeholder="Add note..." rows="4"></textarea>
-        <button class="btn-guardar-nota" onclick="guardarNotaInforme()">Save Note</button>
+        <div class="nota-nueva">
+          <textarea id="notaInforme" placeholder="Add note..." rows="2"></textarea>
+          <button class="btn-guardar-nota" onclick="guardarNotaInforme()" aria-label="Save note"><i class="fas fa-paper-plane"></i></button>
+        </div>
 
     </div>
     
