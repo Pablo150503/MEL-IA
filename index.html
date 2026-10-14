@@ -50,6 +50,8 @@
     <button class="btn-instalar" onclick="instalarApp()">
       <i class="fas fa-download"></i> Install app
     </button>
+    <!-- Versión que está ejecutando este móvil (la rellena js/pwa.js) -->
+    <p id="versionApp" class="version-app"></p>
   </div>
 </div>
 
@@ -514,6 +516,22 @@
 </div>
 
 
+
+  <!-- Previsualización del archivo antes de exportar (ver js/exportar.js) -->
+  <div id="modalExportar" class="modal-exportar" role="dialog" aria-modal="true" aria-labelledby="tituloExportar"
+       onclick="if (event.target === this) cerrarPrevisualizacion()">
+    <div class="modal-exportar-contenido">
+      <div class="modal-exportar-cabecera">
+        <h3 id="tituloExportar">Preview</h3>
+        <p id="infoExportar" class="info-exportar"></p>
+      </div>
+      <div id="vistaExportar" class="vista-exportar"></div>
+      <div class="modal-exportar-botones">
+        <button type="button" class="btn-cancelar-exportar" onclick="cerrarPrevisualizacion()">Cancel</button>
+        <button type="button" id="btnConfirmarExportar" class="btn-confirmar-exportar">Download</button>
+      </div>
+    </div>
+  </div>
 
   <script src="js/script.js"></script>
   <script src="js/rest.js"></script>

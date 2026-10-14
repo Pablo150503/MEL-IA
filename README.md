@@ -53,9 +53,15 @@ DermaNet (Node.js + MySQL, `/api/...`), que no está en este repositorio.
 
 ## Despliegue
 
-Cada push a `main` se publica automáticamente en Vercel. Si cambian los ficheros que se
-guardan en caché, hay que subir `SW_VERSION` en `sw.js` para que las apps instaladas se
-actualicen.
+Cada push a `main` se publica automáticamente en Vercel. Las apps instaladas siguen usando
+la versión que tienen guardada y, al abrirse (y cada pocos minutos), detectan que hay una
+nueva y muestran el aviso **Update available**: actualizar ahora o, si se espera, de forma
+automática a los 15 minutos (nunca a mitad de un diagnóstico). La versión que ejecuta cada
+móvil aparece en la primera pantalla.
+
+No hace falta tocar nada para que salga el aviso. Solo si se modifica el propio `sw.js` hay
+que subir `SW_VERSION`, para que el nuevo service worker guarde la versión nueva en una caché
+aparte y no pise la que se está usando hasta que el usuario acepte la actualización.
 
 ## Circuito de integración (Mirth Connect)
 

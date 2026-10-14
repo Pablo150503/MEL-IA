@@ -1,15 +1,22 @@
 // MEL-IA service worker
-// Bump this on every deploy that changes cached assets.
-const SW_VERSION = "v7";
-// Same-origin requests wait this long for the network before using the cache.
-const NETWORK_TIMEOUT_MS = 4000;
-const PRECACHE = `melia-precache-${SW_VERSION}`;
-const RUNTIME_SAME_ORIGIN = `melia-runtime-${SW_VERSION}`;
-const RUNTIME_CDN = `melia-cdn-${SW_VERSION}`;
-const CURRENT_CACHES = [PRECACHE, RUNTIME_SAME_ORIGIN, RUNTIME_CDN];
+//
+// The app always runs the version stored in the cache (cache-first). When a
+// new version is published (a commit to main that Vercel deploys), js/pwa.js
+// detects it as soon as the app opens and shows the "Update available" popup.
+// Only when the user accepts (or 15 minutes later) is the new version loaded:
+//  - if this file (sw.js) changed, the new worker is already installed and
+//    waiting with the new files: pwa.js activates it ("SKIP_WAITING");
+//  - otherwise this worker downloads the new version into its own cache
+//    ("REFRESH") and the page reloads.
+// That is why install does NOT call skipWaiting().
+const SW_VERSION = "v9";
+const APP_CACHE = `melia-app-${SW_VERSION}`;
+// CDN files have the library version in their URL (they never change), so
+// they are kept across app versions instead of being downloaded again.
+const CDN_CACHE = "melia-cdn";
 
-// App shell. Listed files that don't exist (e.g. demo.js may or may not be
-// present) are skipped individually so one missing file never aborts install.
+// App files. Anything else the app requests later (same origin) is also
+// stored and refreshed together with these when updating.
 const PRECACHE_URLS = [
   "./",
   "index.html",
@@ -39,8 +46,7 @@ const PRECACHE_URLS = [
 ];
 
 // External libraries used by index.html (plus the Font Awesome font its CSS
-// loads). Precached so the installed app works offline from the first launch,
-// not only after a second visit once the page is controlled by this worker.
+// loads), so the installed app also works offline.
 const CDN_PRECACHE_URLS = [
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-solid-900.woff2",
@@ -49,39 +55,41 @@ const CDN_PRECACHE_URLS = [
   "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
 ];
 
 const CDN_HOSTS = ["cdnjs.cloudflare.com", "cdn.jsdelivr.net"];
 
+function absolute(url) {
+  return new URL(url, self.registration.scope).href;
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(PRECACHE);
-      const cdnCache = await caches.open(RUNTIME_CDN);
+      const appCache = await caches.open(APP_CACHE);
+      const cdnCache = await caches.open(CDN_CACHE);
       await Promise.all([
         ...PRECACHE_URLS.map(async (url) => {
           try {
+            // "no-cache": revalidate with the server, never an old HTTP-cache copy
             const response = await fetch(url, { cache: "no-cache" });
-            if (response && response.ok) {
-              await cache.put(url, response);
-            }
+            if (response && response.ok) await appCache.put(absolute(url), response);
           } catch (err) {
-            // Ignore missing/unreachable files so install never fails
-            // because of one optional asset.
+            // A missing or unreachable file never makes the install fail.
           }
         }),
         ...CDN_PRECACHE_URLS.map(async (url) => {
           try {
+            if (await cdnCache.match(url)) return;
             const response = await fetch(url, { mode: "cors" });
-            if (response && response.ok) {
-              await cdnCache.put(url, response);
-            }
+            if (response && response.ok) await cdnCache.put(url, response);
           } catch (err) {
-            // Same as above: never fail install because a CDN is unreachable.
+            // Same as above.
           }
         }),
       ]);
-      await self.skipWaiting();
     })()
   );
 });
@@ -89,73 +97,57 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      const keep = [APP_CACHE, CDN_CACHE];
       const names = await caches.keys();
-      await Promise.all(
-        names
-          .filter((name) => !CURRENT_CACHES.includes(name))
-          .map((name) => caches.delete(name))
-      );
+      await Promise.all(names.filter((name) => !keep.includes(name)).map((name) => caches.delete(name)));
       await self.clients.claim();
     })()
   );
 });
 
-function isApiRequest(url) {
-  return url.pathname.startsWith("/api/");
-}
+// Downloads the published version of every app file this worker has stored.
+// Everything is downloaded first: if anything fails (e.g. no connection) the
+// cache is not touched and the app keeps working with the version it had.
+async function refreshAppCache() {
+  const cache = await caches.open(APP_CACHE);
+  const stored = (await cache.keys()).map((request) => request.url);
+  const urls = [...new Set([...PRECACHE_URLS.map(absolute), ...stored])];
 
-function isCdnRequest(url) {
-  return CDN_HOSTS.includes(url.hostname);
-}
+  const results = await Promise.all(
+    urls.map(async (url) => [url, await fetch(url, { cache: "no-cache" })])
+  );
+  const failed = results.find(([, response]) => !response.ok && response.status !== 404);
+  if (failed) throw new Error(`${failed[0]} ${failed[1].status}`);
 
-async function networkFirstNavigation(request) {
-  try {
-    // Revalidate the page with the server too, so an update is never served
-    // from the browser's HTTP cache.
-    const response = await fetch(request, { cache: "no-cache" });
-    if (response && response.ok) {
-      const cache = await caches.open(RUNTIME_SAME_ORIGIN);
-      cache.put("index.html", response.clone());
-    }
-    return response;
-  } catch (err) {
-    const cache = await caches.open(RUNTIME_SAME_ORIGIN);
-    const cached = await cache.match("index.html");
-    if (cached) return cached;
-    const precache = await caches.open(PRECACHE);
-    const precached = await precache.match("index.html");
-    if (precached) return precached;
-    throw err;
+  for (const [url, response] of results) {
+    if (response.ok) await cache.put(url, response);
+    else await cache.delete(url); // 404: the file no longer exists in the new version
   }
 }
 
-// Network-first so a new deployment is used as soon as the page reloads (the
-// update popup in pwa.js relies on this). If the network is slow, the cached
-// copy is used after NETWORK_TIMEOUT_MS; offline, any cache (runtime or the
-// precached app shell) is used.
-async function networkFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  // "no-cache": always revalidate with the server (cheap 304 if unchanged).
-  // Otherwise the browser's HTTP cache could hand back an old file after an
-  // update, and the page would keep running the previous version.
-  const network = fetch(request, { cache: "no-cache" }).then((response) => {
-    if (response && response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  });
-  network.catch(() => {});
-  const timeout = new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS, "timeout"));
-
-  try {
-    const first = await Promise.race([network, timeout]);
-    if (first !== "timeout") return first;
-    return (await caches.match(request)) || (await network);
-  } catch (err) {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    throw err;
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+    return;
   }
+  if (event.data === "REFRESH") {
+    const reply = (ok) => event.ports[0] && event.ports[0].postMessage({ ok });
+    event.waitUntil(refreshAppCache().then(() => reply(true), () => reply(false)));
+  }
+});
+
+// App files: the stored version first; the network only for what is not stored.
+async function appFirst(request) {
+  const cache = await caches.open(APP_CACHE);
+  const navigation = request.mode === "navigate";
+  const cached =
+    (await cache.match(request, { ignoreSearch: navigation })) ||
+    (navigation ? await cache.match(absolute("./")) : undefined);
+  if (cached) return cached;
+
+  const response = await fetch(request, { cache: "no-cache" });
+  if (response && response.ok && !navigation) cache.put(request, response.clone());
+  return response;
 }
 
 async function cacheFirst(request, cacheName) {
@@ -163,9 +155,7 @@ async function cacheFirst(request, cacheName) {
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (response && response.ok) {
-    cache.put(request, response.clone());
-  }
+  if (response && response.ok) cache.put(request, response.clone());
   return response;
 }
 
@@ -176,31 +166,20 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   // Never intercept API calls: always go straight to the network.
-  if (isApiRequest(url)) {
+  if (url.pathname.startsWith("/api/")) return;
+
+  // Version checks from pwa.js must see what is published, not the cache.
+  if (request.cache === "no-store") return;
+
+  // External libraries: cache-first (their URLs never change).
+  if (CDN_HOSTS.includes(url.hostname)) {
+    event.respondWith(cacheFirst(request, CDN_CACHE));
     return;
   }
 
-  // Version checks from pwa.js must see what is deployed, not the cache.
-  if (request.cache === "no-store") {
-    return;
-  }
-
-  // Navigations (HTML documents): network-first, offline fallback to index.
-  if (request.mode === "navigate") {
-    event.respondWith(networkFirstNavigation(request));
-    return;
-  }
-
-  // Cross-origin CDN assets (three.js, font-awesome, fonts): cache-first.
-  if (isCdnRequest(url)) {
-    event.respondWith(cacheFirst(request, RUNTIME_CDN));
-    return;
-  }
-
-  // Same-origin static assets: network-first with cache fallback.
+  // The app itself (pages, scripts, styles, images...): the installed version.
   if (url.origin === self.location.origin) {
-    event.respondWith(networkFirst(request, RUNTIME_SAME_ORIGIN));
-    return;
+    event.respondWith(appFirst(request));
   }
 
   // Anything else (other third-party origins): just let the network handle it.

@@ -139,8 +139,8 @@ function exportar(formato, generar, extension, tipo) {
     try {
       const contenido = generar(resultado);
       if (!contenido) return;
-      guardarArchivo(contenido, nombreArchivo(resultado, extension), tipo);
-      mostrarAvisoExportacion(`${formato} report exported`);
+      // Antes de descargar se enseña una previsualización del archivo
+      mostrarPrevisualizacion(formato, contenido, nombreArchivo(resultado, extension), tipo);
     } catch (error) {
       console.error(`Error al exportar ${formato}:`, error);
       mostrarAvisoExportacion(`Could not export ${formato}`);
@@ -150,6 +150,215 @@ function exportar(formato, generar, extension, tipo) {
   // Normalmente ya está preparado; si no, se espera a que termine de procesar la imagen
   if (resultado.preparado) hacer();
   else resultado.listo.then(hacer);
+}
+
+// ------------------------------------------------------------------------------------------
+// Previsualización antes de exportar
+// ------------------------------------------------------------------------------------------
+
+const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+function mostrarPrevisualizacion(formato, contenido, nombre, tipo) {
+  const blob = contenido instanceof Blob ? contenido : new Blob([contenido], { type: tipo });
+  const modal = document.getElementById("modalExportar");
+  const vista = document.getElementById("vistaExportar");
+  const boton = document.getElementById("btnConfirmarExportar");
+
+  document.getElementById("tituloExportar").textContent = `${formato} preview`;
+  document.getElementById("infoExportar").textContent = `${nombre} · ${formatoTamano(blob.size)}`;
+  boton.innerHTML = esIOS()
+    ? '<i class="fas fa-share-square"></i> Share'
+    : '<i class="fas fa-download"></i> Download';
+  boton.onclick = () => {
+    guardarArchivo(blob, nombre, tipo);
+    cerrarPrevisualizacion();
+    mostrarAvisoExportacion(`${formato} report exported`);
+  };
+
+  vista.className = "vista-exportar vista-" + formato.toLowerCase();
+  vista.innerHTML = '<p class="cargando-vista"><i class="fas fa-circle-notch fa-spin"></i> Generating preview...</p>';
+  modal.classList.add("visible");
+
+  const pintar = {
+    PDF: () => previsualizarPDF(blob, vista),
+    DICOM: () => previsualizarDICOM(blob, vista),
+    HL7: () => previsualizarTexto(contenido, vista, resaltarHL7),
+    JSON: () => previsualizarTexto(contenido, vista, resaltarJSON),
+    XML: () => previsualizarTexto(contenido, vista, resaltarXML)
+  }[formato];
+  Promise.resolve().then(pintar).catch(error => {
+    console.error("Error en la previsualización:", error);
+    vista.innerHTML = '<p class="cargando-vista">Preview not available. You can still download the file.</p>';
+  });
+}
+
+function cerrarPrevisualizacion() {
+  document.getElementById("modalExportar").classList.remove("visible");
+  document.getElementById("vistaExportar").innerHTML = "";
+}
+
+function formatoTamano(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function escaparHTML(texto) {
+  return String(texto).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// La imagen va entera en el archivo, pero en la vista se acorta su base64 para que se lea el resto
+function acortarBase64(texto) {
+  return texto.replace(/[A-Za-z0-9+/]{120,}={0,2}/g, b64 =>
+    `${b64.slice(0, 24)}… [image, ${formatoTamano(Math.round(b64.length * 3 / 4))} in base64]`);
+}
+
+function previsualizarTexto(contenido, vista, resaltar) {
+  const texto = acortarBase64(String(contenido)).replace(/\r/g, "\n").trim();
+  vista.innerHTML = `<pre class="codigo-exportar">${resaltar(escaparHTML(texto))}</pre>`;
+}
+
+// Resaltado sencillo (sobre texto ya escapado)
+function resaltarHL7(html) {
+  return html.split("\n").map(linea =>
+    linea.replace(/^([A-Z0-9]{3})\|/, '<span class="hl7-segmento">$1</span>|')
+         .replace(/\|/g, '<span class="hl7-separador">|</span>')).join("\n");
+}
+
+function resaltarJSON(html) {
+  return html
+    .replace(/(&quot;[^&]*?&quot;)(\s*:)/g, '<span class="json-clave">$1</span>$2')
+    .replace(/:\s(-?\d+(\.\d+)?)/g, ': <span class="json-numero">$1</span>');
+}
+
+function resaltarXML(html) {
+  return html.replace(/(&lt;\/?)([\w:]+)/g, '$1<span class="xml-etiqueta">$2</span>')
+             .replace(/([\w:]+)=(&quot;[^&]*?&quot;)/g, '<span class="xml-atributo">$1</span>=<span class="xml-valor">$2</span>');
+}
+
+// PDF: se dibuja la primera página del PDF real con pdf.js (se carga solo la primera vez)
+let promesaPdfjs = null;
+
+function cargarScript(url) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = url;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error(`No se pudo cargar ${url}`));
+    document.head.appendChild(script);
+  });
+}
+
+function cargarPdfjs() {
+  if (!promesaPdfjs) {
+    // El worker se carga como script normal: pdf.js lo usa en el hilo principal,
+    // que basta para una página y funciona igual sin conexión (service worker)
+    promesaPdfjs = Promise.all([cargarScript(PDFJS_URL), cargarScript(PDFJS_WORKER_URL)])
+      .then(() => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+        return window.pdfjsLib;
+      })
+      .catch(error => { promesaPdfjs = null; throw error; });
+  }
+  return promesaPdfjs;
+}
+
+async function previsualizarPDF(blob, vista) {
+  const pdfjs = await cargarPdfjs();
+  const pdf = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+  const pagina = await pdf.getPage(1);
+
+  // La página entera cabe en el hueco disponible (sin scroll)
+  const base = pagina.getViewport({ scale: 1 });
+  const escala = Math.min(vista.clientWidth / base.width, vista.clientHeight / base.height);
+  const densidad = Math.min(window.devicePixelRatio || 1, 2);
+  const viewport = pagina.getViewport({ scale: escala * densidad });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+  canvas.style.width = `${Math.floor(viewport.width / densidad)}px`;
+  canvas.style.height = `${Math.floor(viewport.height / densidad)}px`;
+  canvas.className = "pagina-pdf";
+  await pagina.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+  vista.innerHTML = "";
+  vista.appendChild(canvas);
+}
+
+// DICOM: se lee el propio archivo generado y se enseña su imagen y su cabecera
+const NOMBRES_DICOM = {
+  "0002,0000": "File Meta Group Length", "0002,0001": "File Meta Version", "0002,0002": "Media Storage SOP Class",
+  "0002,0003": "Media Storage SOP Instance", "0002,0010": "Transfer Syntax", "0002,0012": "Implementation Class UID",
+  "0002,0013": "Implementation Version", "0008,0005": "Specific Character Set", "0008,0016": "SOP Class UID",
+  "0008,0018": "SOP Instance UID", "0008,0020": "Study Date", "0008,0023": "Content Date", "0008,0030": "Study Time",
+  "0008,0033": "Content Time", "0008,0050": "Accession Number", "0008,0060": "Modality", "0008,0064": "Conversion Type",
+  "0008,0070": "Manufacturer", "0008,0090": "Referring Physician", "0008,1030": "Study Description",
+  "0010,0010": "Patient Name", "0010,0020": "Patient ID", "0010,0030": "Patient Birth Date", "0010,0040": "Patient Sex",
+  "0010,1010": "Patient Age", "0020,000D": "Study Instance UID", "0020,000E": "Series Instance UID",
+  "0020,0010": "Study ID", "0020,0011": "Series Number", "0020,0013": "Instance Number",
+  "0020,0020": "Patient Orientation", "0020,4000": "Image Comments", "0028,0002": "Samples per Pixel",
+  "0028,0004": "Photometric Interpretation", "0028,0006": "Planar Configuration", "0028,0010": "Rows",
+  "0028,0011": "Columns", "0028,0100": "Bits Allocated", "0028,0101": "Bits Stored", "0028,0102": "High Bit",
+  "0028,0103": "Pixel Representation", "7FE0,0010": "Pixel Data"
+};
+
+function leerDICOM(bytes) {
+  const vista = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const decodificador = new TextDecoder("utf-8");
+  const hex = n => n.toString(16).toUpperCase().padStart(4, "0");
+  const elementos = [];
+  let pos = 132; // preámbulo (128) + "DICM"
+  while (pos + 8 <= bytes.length) {
+    const grupo = vista.getUint16(pos, true);
+    const elemento = vista.getUint16(pos + 2, true);
+    const vr = String.fromCharCode(bytes[pos + 4], bytes[pos + 5]);
+    const largo = VR_LONGITUD_LARGA.includes(vr) ? vista.getUint32(pos + 8, true) : vista.getUint16(pos + 6, true);
+    const inicio = pos + (VR_LONGITUD_LARGA.includes(vr) ? 12 : 8);
+    let valor;
+    if (vr === "US") valor = vista.getUint16(inicio, true);
+    else if (vr === "UL") valor = vista.getUint32(inicio, true);
+    else if (vr === "OB") valor = bytes.subarray(inicio, inicio + largo);
+    else valor = decodificador.decode(bytes.subarray(inicio, inicio + largo)).replace(/[\0\s]+$/, "");
+    elementos.push({ etiqueta: `${hex(grupo)},${hex(elemento)}`, vr, largo, valor });
+    pos = inicio + largo;
+  }
+  return elementos;
+}
+
+async function previsualizarDICOM(blob, vista) {
+  const elementos = leerDICOM(new Uint8Array(await blob.arrayBuffer()));
+  const buscar = etiqueta => (elementos.find(e => e.etiqueta === etiqueta) || {}).valor;
+  const filas = buscar("0028,0010");
+  const columnas = buscar("0028,0011");
+  const pixeles = buscar("7FE0,0010");
+
+  // Imagen reconstruida a partir de los píxeles RGB guardados en el DICOM
+  const canvas = document.createElement("canvas");
+  canvas.width = columnas;
+  canvas.height = filas;
+  canvas.className = "imagen-dicom";
+  const ctx = canvas.getContext("2d");
+  const imagen = ctx.createImageData(columnas, filas);
+  for (let i = 0, j = 0; i < filas * columnas; i++) {
+    imagen.data[j++] = pixeles[i * 3];
+    imagen.data[j++] = pixeles[i * 3 + 1];
+    imagen.data[j++] = pixeles[i * 3 + 2];
+    imagen.data[j++] = 255;
+  }
+  ctx.putImageData(imagen, 0, 0);
+
+  const tabla = elementos.map(e => {
+    const valor = e.vr === "OB"
+      ? (e.etiqueta === "7FE0,0010" ? `${columnas}×${filas} RGB · ${formatoTamano(e.largo)}` : Array.from(e.valor).join(" "))
+      : e.valor;
+    return `<tr><td class="dicom-etiqueta">(${e.etiqueta})</td><td>${escaparHTML(NOMBRES_DICOM[e.etiqueta] || "")}</td>` +
+           `<td class="dicom-vr">${e.vr}</td><td class="dicom-valor">${escaparHTML(valor === "" ? "—" : valor)}</td></tr>`;
+  }).join("");
+
+  vista.innerHTML = "";
+  vista.appendChild(canvas);
+  vista.insertAdjacentHTML("beforeend", `<table class="tabla-dicom"><tbody>${tabla}</tbody></table>`);
 }
 
 function nombreArchivo(resultado, extension) {

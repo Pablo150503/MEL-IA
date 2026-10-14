@@ -124,6 +124,7 @@
       "}",
       "#pwa-update .pwa-update-ahora{background:#137DC5;color:#fff;border:none;}",
       "#pwa-update .pwa-update-luego{background:#fff;color:#137DC5;border:2px solid #137DC5;}",
+      "#pwa-update button:disabled{opacity:0.6;cursor:default;}",
       "@keyframes pwaAparecer{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}",
     ].join("\n");
     document.head.appendChild(style);
@@ -333,11 +334,12 @@
   };
 
   // ---------------------------------------------------------------------
-  // Update popup: detects a new deployment (e.g. a commit to main that
-  // Vercel publishes) by comparing a fingerprint of the app files that are
-  // running with the ones on the server. The user can update now or wait;
-  // after 15 minutes the app updates itself (but never in the middle of a
-  // diagnosis).
+  // Update popup: every time a new version is published (a commit to main
+  // that Vercel deploys) the popup appears, also when the app is opened
+  // afterwards: the app runs its cached version (sw.js) and compares a
+  // fingerprint of its files with the ones on the server. The user can
+  // update now or wait; after 15 minutes the app updates itself (but never
+  // in the middle of a diagnosis).
   // ---------------------------------------------------------------------
   var VERSION_FILES = [
     "index.html", "js/script.js", "css/styles.css", "js/demo.js", "js/exportar.js",
@@ -377,13 +379,27 @@
     if (updateDeadline || !runningFingerprint) return;
     // no-store: bypasses the HTTP cache and the service worker (see sw.js)
     fingerprint({ cache: "no-store" }).then(function (deployed) {
-      if (deployed !== runningFingerprint && !updateDeadline) {
-        updateDeadline = Date.now() + AUTO_UPDATE_MS;
-        showUpdatePopup();
+      if (deployed !== runningFingerprint) {
+        if (!updateDeadline) {
+          updateDeadline = Date.now() + AUTO_UPDATE_MS;
+          showUpdatePopup();
+        }
+      } else {
+        activateWaitingWorker();
       }
     }).catch(function () {
       // Offline or server unreachable: try again on the next check.
     });
+  }
+
+  // The page already runs the published version but a new service worker is
+  // waiting. It happens once, when an older network-first worker is replaced
+  // by the current cache-first one: activate it without bothering the user.
+  function activateWaitingWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.getRegistration().then(function (registration) {
+      if (registration && registration.waiting) registration.waiting.postMessage("SKIP_WAITING");
+    }).catch(function () {});
   }
 
   function showUpdatePopup() {
@@ -407,20 +423,78 @@
     document.body.appendChild(overlay);
   }
 
+  function setPopupBusy(busy, message) {
+    var overlay = document.getElementById("pwa-update");
+    if (!overlay) return;
+    var now = overlay.querySelector(".pwa-update-ahora");
+    var later = overlay.querySelector(".pwa-update-luego");
+    now.disabled = busy;
+    later.disabled = busy;
+    now.textContent = busy ? "Updating..." : "Try again";
+    if (message) overlay.querySelector(".pwa-update-nota").textContent = message;
+  }
+
   function isBusy() {
     /* global vistaActual */
     return typeof vistaActual !== "undefined" && BUSY_VIEWS.indexOf(vistaActual) !== -1;
   }
 
+  // Resolves when a service worker that is being installed has finished.
+  function waitForInstall(registration) {
+    var worker = registration.installing;
+    if (!worker) return Promise.resolve();
+    return new Promise(function (resolve) {
+      worker.addEventListener("statechange", function () {
+        if (worker.state !== "installing") resolve();
+      });
+      setTimeout(resolve, 60000);
+    });
+  }
+
+  // Sends a message to the service worker and waits for its answer.
+  function askWorker(worker, message) {
+    return new Promise(function (resolve) {
+      var channel = new MessageChannel();
+      channel.port1.onmessage = function (event) { resolve(event.data); };
+      worker.postMessage(message, [channel.port2]);
+      setTimeout(function () { resolve({ ok: false }); }, 60000);
+    });
+  }
+
+  var updating = false;
+
+  // Loads the published version: the app runs the cached version (see sw.js)
+  // until the user accepts the update or the 15 minutes run out.
   function applyUpdate() {
+    if (updating) return;
+    updating = true;
+    setPopupBusy(true);
     var reload = function () { window.location.reload(); };
-    if (!("serviceWorker" in navigator)) return reload();
-    // Pick up a new sw.js too if there is one; the network-first worker
-    // serves the new files on reload either way.
-    navigator.serviceWorker.getRegistration()
-      .then(function (registration) { return registration && registration.update(); })
-      .catch(function () {})
-      .then(reload);
+    var failed = function () {
+      updating = false;
+      setPopupBusy(false, "The update could not be downloaded. Check your connection and try again.");
+    };
+    if (!("serviceWorker" in navigator) || !navigator.serviceWorker.controller) return reload();
+
+    navigator.serviceWorker.getRegistration().then(function (registration) {
+      if (!registration) return reload();
+      return registration.update().catch(function () {}).then(function () {
+        return waitForInstall(registration);
+      }).then(function () {
+        if (registration.waiting) {
+          // sw.js changed: the waiting worker already downloaded the new version
+          navigator.serviceWorker.addEventListener("controllerchange", reload);
+          registration.waiting.postMessage("SKIP_WAITING");
+          setTimeout(reload, 5000);
+          return;
+        }
+        // Same worker: it downloads the new version into its cache, then reload
+        return askWorker(navigator.serviceWorker.controller, "REFRESH").then(function (reply) {
+          if (reply && reply.ok) reload();
+          else failed();
+        });
+      });
+    }).catch(failed);
   }
 
   function checkAutoUpdate() {
@@ -430,14 +504,20 @@
   }
 
   function startUpdateChecks() {
-    // Fingerprint of what this page is running: through the service worker,
-    // which right after load serves the same files the page just used.
+    // Fingerprint of what this page is running (the cached version, through
+    // the service worker); then check right away whether a newer one exists,
+    // so the popup appears as soon as the app opens after a new commit.
     fingerprint({}).then(function (current) {
       runningFingerprint = current;
+      // Visible version (first screen): lets you check which version a phone runs
+      var label = document.getElementById("versionApp");
+      if (label) label.textContent = "Version " + current.split("-")[1];
+      checkForUpdate();
     }).catch(function () {});
 
     setInterval(checkForUpdate, CHECK_INTERVAL_MS);
     setInterval(checkAutoUpdate, 30 * 1000);
+    window.addEventListener("online", checkForUpdate);
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") {
         checkForUpdate();
