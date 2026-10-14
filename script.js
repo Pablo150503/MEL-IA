@@ -923,9 +923,10 @@ function cambiarVista(id) {
       return;
   }
 
-  // Mostrar la nueva vista
+  // Mostrar la nueva vista (el CSS de .vista.visible la coloca como columna adaptable)
   nuevaVista.classList.add("visible");
-  nuevaVista.style.display = "block";  
+  nuevaVista.style.display = "";
+  window.scrollTo(0, 0);
   vistaActual = id;
 
   actualizarHeader();
@@ -1024,9 +1025,8 @@ function iniciarModelo3D() {
       console.error("Error: No se encontró el contenedor del canvas (#canvas3D)");
       return;
     }
-    canvasContainer.style.width = "100%";
-    canvasContainer.style.height = "60vh";
-  
+    // El tamaño del contenedor lo marca styles.css (se adapta al alto del móvil)
+
     // Crear escena, cámara y renderizador.
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -1036,6 +1036,7 @@ function iniciarModelo3D() {
       1000
     );
     const renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); // nítido en pantallas retina
     renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
     canvasContainer.innerHTML = "";
     canvasContainer.appendChild(renderer.domElement);
@@ -1088,7 +1089,7 @@ const loader = new THREE.GLTFLoader();
   
     // Posicionar la cámara.
     camera.position.set(0, 0, 85);
-    window.addEventListener("pointerdown", (event) => detectarClicEnModelo(event, camera, scene));
+    renderer.domElement.addEventListener("pointerdown", (event) => detectarClicEnModelo(event, camera, scene));
   
     function animate() {
       requestAnimationFrame(animate);
@@ -1102,9 +1103,10 @@ function detectarClicEnModelo(event, camera, scene) {
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
   
-    // Convertir coordenadas del mouse a rango [-1, 1].
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    // Convertir coordenadas del dedo/ratón a rango [-1, 1] respecto al canvas del modelo
+    const rect = event.currentTarget.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children, true);
