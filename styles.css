@@ -1996,6 +1996,8 @@ textarea {
     --hueco: clamp(8px, 1.8vh, 20px);
     --relleno-campo: clamp(9px, 1.6vh, 14px);
     --ancho-contenido: 360px;
+    /* Espacio bajo el último botón: 28px, o más en iPhone con barra de inicio */
+    --espacio-inferior: max(28px, calc(var(--seguro-abajo) + 14px));
 }
 
 html, body {
@@ -2012,13 +2014,18 @@ html, body {
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto; /* solo red de seguridad para pantallas fuera de lo común */
-    padding: calc(var(--seguro-arriba) + 16px) var(--margen-lateral) calc(var(--seguro-abajo) + 16px);
+    padding: calc(var(--seguro-arriba) + 16px) var(--margen-lateral) var(--espacio-inferior);
 }
 
 .vista.visible {
     display: flex;
     flex-direction: column;
     gap: var(--hueco);
+}
+
+/* Pantallas sin botón abajo (contenido centrado): margen inferior normal */
+#modo, #credenciales, #registro {
+    padding-bottom: calc(var(--seguro-abajo) + 16px);
 }
 
 /* Pantallas con cabecera fija: el contenido empieza debajo de ella */
@@ -2082,16 +2089,26 @@ input, .custom-select {
 }
 
 /* --- Botones ---------------------------------------------------------------- */
-/* "Go back": siempre al final de la pantalla, en el flujo (nunca tapa nada) */
-.btn-volver1, .btn-volver, .btn-volver2 {
+/* "Go back": idéntico en todas las pantallas (mismo tamaño y estilo) y siempre
+   a la misma altura, al final de la pantalla y separado del borde inferior */
+.btn-volver1, .btn-volver, .btn-volver2, #resultados .btn-siguiente {
     position: static;
     transform: none;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     width: 100%;
     max-width: 240px;
+    height: 46px;
     margin: auto auto 0;
-    padding: clamp(10px, 1.6vh, 13px) 20px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 25px;
+    background-color: #50aeee;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
 }
 
 .btn-siguiente, .btn-iniciar {
@@ -2302,12 +2319,14 @@ input, .custom-select {
 #resultados {
     gap: 0;
     overflow: hidden;
+    padding-bottom: var(--espacio-inferior);
 }
 
 /* --- 9. Seguimiento: la lista de pacientes ocupa el espacio libre ---------- */
 #seguimiento {
     overflow: hidden;
     align-items: center;
+    padding-bottom: var(--espacio-inferior); /* el CSS original lo dejaba a 0 */
 }
 
 #buscadorPacientes {
